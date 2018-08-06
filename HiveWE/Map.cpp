@@ -110,6 +110,188 @@ void Map::load(const fs::path& path) {
 bool Map::save(const fs::path& path) const {
 	std::error_code t;
 
+	if (!hierarchy.map.file_exists("war3mapPreview.tga")) { //Code For generating the minimap preview, same should work for minimap itself, but in blp (war3mapMap.blp)
+		int temp = 0;
+		int scale = 1;
+		int width = terrain.width - 1;
+		int height = terrain.height - 1;
+		byte header[18] = { 0 };
+		int size = height > width ? height : width;
+		if (size < 128 && (size % 32) == 0)
+			scale = 128 / size;
+		header[2] = 2;
+		header[12] = size * scale & 0xFF;
+		header[13] = (size * scale >> 8) & 0xFF;
+		header[14] = size * scale & 0xFF;
+		header[15] = (size * scale >> 8) & 0xFF;
+		header[16] = 32;
+		header[17] = 0;
+		std::cout << "Trying to save war3mapPreview.tga... \nScale is: " << scale << std::endl;
+		std::ofstream tgafile("E:\\war3mapPreview.tga", std::ios::binary);
+		tgafile.write((const char*)header, 18);
+		//for (int y = terrain.height - 1; y >= 0; y--) {// if header[17] is 32
+		if (width == height) {
+			for (int y = 0; y < height; y++) {
+				for (int ys = 0; ys < scale; ys++) {
+					for (int x = 0; x < width; x++) {
+						for (int xs = 0; xs < scale; xs++) {
+							for (int i = -1; i < 1; i++) {
+								for (int j = -1; j < 1; j++) {
+									if (x + i >= 0 && x + i < terrain.width && y + j >= 0 && y + j < terrain.height) {
+										if (terrain.corners[x + i][y + j].cliff) {
+											int texture = terrain.corners[x + i][y + j].cliff_texture;
+											// Number 15 seems to be something
+											if (texture == 15) {
+												texture -= 14;
+											}
+											temp = terrain.cliff_to_ground_texture[texture] * 15;
+										}
+									}
+								}
+							}
+							if (temp)
+							{
+								tgafile.put(temp); //blue?
+								tgafile.put(temp); //green?
+								tgafile.put(temp); //red?
+								temp = 0;
+							}
+							else
+							{
+								tgafile.put(terrain.corners[x][y].ground_texture * 15); //blue?
+								tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
+								tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
+							}
+							tgafile.put(255); //We don't use alpha
+						}
+					}
+				}
+			}
+		}
+		else {
+			int diff = 0;
+			if (width < height) {
+				diff = height - width;
+				for (int y = 0; y < height; y++) {
+					for (int ys = 0; ys < scale; ys++) {
+						for (int delta = 0; delta < diff * scale / 2; delta++)
+						{
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(255);
+						}
+						for (int x = 0; x < width; x++) {
+							for (int i = -1; i < 1; i++) {
+								for (int j = -1; j < 1; j++) {
+									if (x + i >= 0 && x + i < terrain.width && y + j >= 0 && y + j < terrain.height) {
+										if (terrain.corners[x + i][y + j].cliff) {
+											int texture = terrain.corners[x + i][y + j].cliff_texture;
+											// Number 15 seems to be something
+											if (texture == 15) {
+												texture -= 14;
+											}
+											temp = terrain.cliff_to_ground_texture[texture] * 15;
+										}
+									}
+								}
+
+							}
+							for (int xs = 0; xs < scale; xs++) {
+								if (temp)
+								{
+									tgafile.put(temp); //blue?
+									tgafile.put(temp); //green?
+									tgafile.put(temp); //red?
+									temp = 0;
+								}
+								else
+								{
+									tgafile.put(terrain.corners[x][y].ground_texture * 15); //blue?
+									tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
+									tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
+								}
+								tgafile.put(255); //We don't use alpha
+							}
+						}
+						for (int delta = 0; delta < diff * scale / 2; delta++)
+						{
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(255);
+						}
+					}
+				}
+			} else {
+				diff = width - height;
+				for (int x = 0; x < width; x++) {
+					for (int xs = 0; xs < scale; xs++) {
+						for (int delta = 0; delta < diff * scale / 2; delta++)
+						{
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(255);
+						}
+						for (int y = 0; y < height; y++) {
+							for (int i = -1; i < 1; i++) {
+								for (int j = -1; j < 1; j++) {
+									if (x + i >= 0 && x + i < terrain.width && y + j >= 0 && y + j < terrain.height) {
+										if (terrain.corners[x + i][y + j].cliff) {
+											int texture = terrain.corners[x + i][y + j].cliff_texture;
+											// Number 15 seems to be something
+											if (texture == 15) {
+												texture -= 14;
+											}
+											temp = terrain.cliff_to_ground_texture[texture] * 15;
+										}
+									}
+								}
+							}
+							for (int ys = 0; ys < scale; ys++) {
+								if (temp)
+								{
+									tgafile.put(temp); //blue?
+									tgafile.put(temp); //green?
+									tgafile.put(temp); //red?
+									temp = 0;
+								}
+								else
+								{
+									tgafile.put(terrain.corners[x][y].ground_texture * 15); //blue?
+									tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
+									tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
+								}
+								tgafile.put(255); //We don't use alpha
+							}
+						}
+						for (int delta = 0; delta < diff * scale / 2; delta++)
+						{
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(0);
+							tgafile.put(255);
+						}
+					}
+				}
+			}
+		}
+
+		if ((size * scale % 128) != 0)
+		{
+			std::wcout << "Map size is not right for creating a minimap image";
+		}
+		static const char footer[26] =
+			"\0\0\0\0"  // no extension area
+			"\0\0\0\0"  // no developer directory
+			"TRUEVISION-XFILE"  // yep, this is a TGA file
+			".";
+		tgafile.write(footer, 26);
+
+		tgafile.close();
+	}
+
 	const fs::path complete_path = fs::absolute(path, t);
 	if (complete_path != filesystem_path) {
 		try {
