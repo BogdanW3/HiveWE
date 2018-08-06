@@ -124,7 +124,7 @@ bool Map::save(const fs::path& path) const {
 		header[13] = (size * scale >> 8) & 0xFF;
 		header[14] = size * scale & 0xFF;
 		header[15] = (size * scale >> 8) & 0xFF;
-		header[16] = 32;
+		header[16] = 24;
 		header[17] = 0;
 		std::cout << "Trying to save war3mapPreview.tga... \nScale is: " << scale << std::endl;
 		std::ofstream tgafile("E:\\war3mapPreview.tga", std::ios::binary);
@@ -162,7 +162,7 @@ bool Map::save(const fs::path& path) const {
 								tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
 								tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
 							}
-							tgafile.put(255); //We don't use alpha
+							//tgafile.put(255); //We don't use alpha
 						}
 					}
 				}
@@ -179,7 +179,7 @@ bool Map::save(const fs::path& path) const {
 							tgafile.put(0);
 							tgafile.put(0);
 							tgafile.put(0);
-							tgafile.put(255);
+							//tgafile.put(255);
 						}
 						for (int x = 0; x < width; x++) {
 							for (int i = -1; i < 1; i++) {
@@ -211,7 +211,7 @@ bool Map::save(const fs::path& path) const {
 									tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
 									tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
 								}
-								tgafile.put(255); //We don't use alpha
+								//tgafile.put(255); //We don't use alpha
 							}
 						}
 						for (int delta = 0; delta < diff * scale / 2; delta++)
@@ -219,7 +219,7 @@ bool Map::save(const fs::path& path) const {
 							tgafile.put(0);
 							tgafile.put(0);
 							tgafile.put(0);
-							tgafile.put(255);
+							//tgafile.put(255);
 						}
 					}
 				}
@@ -232,7 +232,7 @@ bool Map::save(const fs::path& path) const {
 							tgafile.put(0);
 							tgafile.put(0);
 							tgafile.put(0);
-							tgafile.put(255);
+							//tgafile.put(255);
 						}
 						for (int y = 0; y < height; y++) {
 							for (int i = -1; i < 1; i++) {
@@ -263,7 +263,7 @@ bool Map::save(const fs::path& path) const {
 									tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
 									tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
 								}
-								tgafile.put(255); //We don't use alpha
+								//tgafile.put(255); //We don't use alpha
 							}
 						}
 						for (int delta = 0; delta < diff * scale / 2; delta++)
@@ -271,7 +271,7 @@ bool Map::save(const fs::path& path) const {
 							tgafile.put(0);
 							tgafile.put(0);
 							tgafile.put(0);
-							tgafile.put(255);
+							//tgafile.put(255);
 						}
 					}
 				}
