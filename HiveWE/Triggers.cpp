@@ -3,6 +3,7 @@
 void Triggers::load(BinaryReader& reader) {
 	trigger_strings.load("UI/TriggerStrings.txt");
 	trigger_data.load("UI/TriggerData.txt");
+	trigger_data.substitute(world_edit_strings, "WorldEditStrings");
 
 	for (auto&& section : { "TriggerActions"s, "TriggerEvents"s, "TriggerConditions"s, "TriggerCalls"s }) {
 		for (auto&&[key, value] : trigger_data.section(section)) {
@@ -11,8 +12,8 @@ void Triggers::load(BinaryReader& reader) {
 			}
 
 			int arguments = 0;
-			for (auto&& j : split(value, ',')) {
-				arguments += !j.empty() && !is_number(j) && j != "nothing";
+			for (auto&& j : value) {
+				arguments += !j.empty() && !is_number(j) && j!= "nothing";
 			}
 
 			if (section == "TriggerCalls") {
@@ -22,7 +23,7 @@ void Triggers::load(BinaryReader& reader) {
 			argument_counts[key] = arguments;
 		}
 	}
-	
+
 	std::string magic_number = reader.read_string(4);
 	if (magic_number != "WTG!") {
 		std::cout << "Unknown magic number for war3map.wtg " << magic_number << "\n";
@@ -42,25 +43,40 @@ void Triggers::load(BinaryReader& reader) {
 
 	reader.advance(4); // Unknown always 0
 
-	variables.resize(reader.read<uint32_t>());
-	for (auto&& i : variables) {
-		i.name = reader.read_c_string();
-		i.type = reader.read_c_string();
+	int variable_count = reader.read<uint32_t>();
+	for (int i = 0; i < variable_count; i++) {
+		std::string name = reader.read_c_string();
+		TriggerVariable variable;
+		variable.type = reader.read_c_string();
 		reader.advance(4); // Unknown always 1
-		i.is_array = reader.read<uint32_t>();
+		variable.is_array = reader.read<uint32_t>();
 		if (version == 7) {
-			i.array_size = reader.read<uint32_t>();
+			variable.array_size = reader.read<uint32_t>();
 		}
-		i.is_initialized = reader.read<uint32_t>();
-		i.initial_value = reader.read_c_string();
+		variable.is_initialized = reader.read<uint32_t>();
+		variable.initial_value = reader.read_c_string();
+		variables[name] = variable;
 	}
 
+	//variables.resize(reader.read<uint32_t>());
+	//for (auto&& i : variables) {
+	//	i.name = reader.read_c_string();
+	//	i.type = reader.read_c_string();
+	//	reader.advance(4); // Unknown always 1
+	//	i.is_array = reader.read<uint32_t>();
+	//	if (version == 7) {
+	//		i.array_size = reader.read<uint32_t>();
+	//	}
+	//	i.is_initialized = reader.read<uint32_t>();
+	//	i.initial_value = reader.read_c_string();
+	//}
+
 	std::function<void(TriggerParameter&)> parse_parameter_structure = [&](TriggerParameter& parameter) {
-		parameter.type = reader.read<uint32_t>();
+		parameter.type = static_cast<TriggerParameter::Type>(reader.read<uint32_t>());
 		parameter.value = reader.read_c_string();
-		bool has_sub_parameter = reader.read<uint32_t>();
-		if (has_sub_parameter) {
-			parameter.sub_parameter.type = reader.read<uint32_t>();
+		parameter.has_sub_parameter = reader.read<uint32_t>();
+		if (parameter.has_sub_parameter) {
+			parameter.sub_parameter.type = static_cast<TriggerSubParameter::Type>(reader.read<uint32_t>());
 			parameter.sub_parameter.name = reader.read_c_string();
 			parameter.sub_parameter.begin_parameters = reader.read<uint32_t>();
 			if (parameter.sub_parameter.begin_parameters) {
@@ -71,13 +87,13 @@ void Triggers::load(BinaryReader& reader) {
 			}
 		}
 		if (version == 4) {
-			if (parameter.type == 2) {
+			if (parameter.type == TriggerParameter::Type::function) {
 				reader.advance(4); // Unknown always 0
 			} else {
 				parameter.is_array = reader.read<uint32_t>();
 			}
 		} else {
-			if (has_sub_parameter) {
+			if (parameter.has_sub_parameter) {
 				reader.advance(4); // Unknown always 0
 			}
 			parameter.is_array = reader.read<uint32_t>();
@@ -88,7 +104,7 @@ void Triggers::load(BinaryReader& reader) {
 		}
 	};
 
-	
+
 	std::function<void(ECA&, bool)> parse_eca_structure = [&](ECA& eca, bool is_child) {
 		eca.type = static_cast<ECA::Type>(reader.read<uint32_t>());
 		if (is_child) {

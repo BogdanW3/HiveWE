@@ -29,7 +29,6 @@ namespace casc {
 	class CASC {
 	public:
 		HANDLE handle;
-		fs::path local_path;
 
 		CASC() = default;
 
@@ -49,12 +48,9 @@ namespace casc {
 		}
 
 		void open(const fs::path& path, unsigned long flags = 0);
-		//void open(File& archive, unsigned long flags = 0);
 		void close();
 
 		File file_open(const fs::path& path) const;
-		//void file_remove(const fs::path& path) const;
 		bool file_exists(const fs::path& path) const;
 	};
-
 }

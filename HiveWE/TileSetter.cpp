@@ -21,14 +21,14 @@ TileSetter::TileSetter(QWidget *parent) : QDialog(parent) {
 		button->setCheckable(true);
 		button->setProperty("tileID", QString::fromStdString(i));
 		button->setProperty("tileName", QString::fromStdString(slk.data("comment", i)));
-		
+
 		selected_layout->addWidget(button);
 		selected_group->addButton(button);
 	}
 
 	for (auto&& [key, value] : world_edit_data.section("TileSets")) {
-		const std::string tileset_key = split(value, ',').front();
-		ui.tileset->addItem(QString::fromStdString(tileset_key), QString::fromStdString(key));
+//		const std::string tileset_key = split(value, ',').front();
+		ui.tileset->addItem(QString::fromStdString(value[0]), QString::fromStdString(key));
 	}
 
 	update_available_tiles();

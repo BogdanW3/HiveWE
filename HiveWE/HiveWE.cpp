@@ -8,15 +8,16 @@ WindowHandler window_handler;
 
 HiveWE::HiveWE(QWidget* parent) : QMainWindow(parent) {
 	fs::path directory = find_warcraft_directory();
-	while (!fs::exists(directory / "War3x.mpq")) {
+	while (!fs::exists(directory / "Data")) {
 		directory = QFileDialog::getExistingDirectory(this, "Select Warcraft Directory", "/home", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks).toStdWString();
-	}
+		if (directory == "") {
+			exit(EXIT_SUCCESS);
+		}
+	} ;
 	QSettings settings;
 	settings.setValue("warcraftDirectory", QString::fromStdString(directory.string()));
 	hierarchy.warcraft_directory = directory;
 	hierarchy.init();
-
-	auto t = texture_to_icon("ReplaceableTextures\\WorldEditUI\\Actions-Nothing.blp");
 
 	ui.setupUi(this);
 
@@ -52,7 +53,7 @@ HiveWE::HiveWE(QWidget* parent) : QMainWindow(parent) {
 	connect(ui.actionChangeTilePathing, &QAction::triggered, [this]() { new TilePather(this); });
 
 	connect(ui.actionEnforce_Water_Height_Limit, &QAction::triggered, [&](bool checked) { map.enforce_water_height_limits = checked; });
-	
+
 
 	connect(ui.actionPathing_Palette, &QAction::triggered, [this]() {
 		auto palette = new PathingPallete(this);
@@ -63,9 +64,8 @@ HiveWE::HiveWE(QWidget* parent) : QMainWindow(parent) {
 	connect(ui.actionTerrain_Palette, &QAction::triggered, [this]() { new TerrainPalette(this); });
 	connect(ui.actionDoodads_Palette, &QAction::triggered, [this]() { new DoodadPalette(this); });
 
-
 	connect(ui.actionTrigger_Editor, &QAction::triggered, []() { window_handler.create_or_raise<TriggerEditor>(); });
-	connect(ui.actionImport_Manager, &QAction::triggered, []() { window_handler.create_or_raise<ImportManager>(); }); 
+	connect(ui.actionImport_Manager, &QAction::triggered, []() { window_handler.create_or_raise<ImportManager>(); });
 }
 
 
@@ -101,7 +101,11 @@ void HiveWE::save_as() {
 }
 
 void HiveWE::closeEvent(QCloseEvent* event) {
-	event->accept();
+	//int choice = QMessageBox::question(this, "Do you want to quit?", "Are you sure you want to quit?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+	//if (choice == QMessageBox::Yes) {
+	//}
+		event->accept();
 }
 
 void HiveWE::switch_camera() {

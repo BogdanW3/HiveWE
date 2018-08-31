@@ -31,11 +31,15 @@ namespace fs = std::filesystem;
 #include <QDialogButtonBox>
 
 // Dependencies
-#define GLM_FORCE_CXX14
+//#define GLM_FORCE_CXX14
 #define GLM_FORCE_RADIANS
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#ifdef _MSC_VER
 #include <SOIL2.h>
+#else
+#include <SOIL/SOIL.h>
+#endif
 #include <turbojpeg.h>
 
 // Custom Qt Widgets
@@ -65,6 +69,7 @@ namespace fs = std::filesystem;
 #include "INI.h"
 #include "SLK.h"
 #include "MDX.h"
+#include "JSON.h"
 
 #include "Utilities.h"
 

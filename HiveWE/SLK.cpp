@@ -18,7 +18,7 @@ namespace slk {
 		}
 
 		std::string line;
-		
+
 		size_t position = 0;
 		size_t length = 0;
 
@@ -91,7 +91,7 @@ namespace slk {
 						}
 
 						table_data[row][column] = part;
-						
+
 						if (row == 0) {
 							header_to_column.emplace(part, column);
 						}
@@ -129,7 +129,11 @@ namespace slk {
 		output << "ID;PWXL;N;E\n";
 		output << "B;X" << columns << ";Y" << rows << ";D0\n";
 
-		for(int i = 0; i < table_data.size(); i++) {
+		for (auto&&[key, value] : header_to_column) {
+			output << "C;X" << value + 1 << ";Y1;K\"" << key << "\"\n";
+		}
+
+		for(int i = 1; i < table_data.size(); i++) {
 			for (int j = 0; j < table_data[i].size(); j++) {
 				output << "C;X" << j + 1 << ";Y" << i + 1 << ";K\"" << table_data[i][j] << "\"\n";
 			}
@@ -206,7 +210,7 @@ namespace slk {
 				if (header_to_column.find(key) == header_to_column.end()) {
 					add_column(key);
 				}
-				table_data[header_to_row[section_key]][header_to_column[key]] = value;
+				table_data[header_to_row[section_key]][header_to_column[key]] = std::accumulate(value.begin(), value.end(), ""s);;
 			}
 		}
 	}
@@ -226,7 +230,7 @@ namespace slk {
 
 	void SLK::copy_row(const std::string& row_header, const std::string& new_row_header) {
 		if (header_to_row.find(row_header) == header_to_row.end()) {
-			std::cout << "Uknown row header: " << row_header << "\n";
+			std::cout << "Unknown row header: " << row_header << "\n";
 			return;
 		}
 
@@ -251,12 +255,12 @@ namespace slk {
 
 	void SLK::set_shadow_data(const std::string& column_header, const std::string& row_header, const std::string& data) {
 		if (header_to_column.find(column_header) == header_to_column.end()) {
-			std::cout << "Uknown column header: " << column_header << "\n";
+			std::cout << "Unknown column header: " << column_header << "\n";
 			return;
 		}
 
 		if (header_to_row.find(row_header) == header_to_row.end()) {
-			std::cout << "Uknown row header: " << row_header << "\n";
+			std::cout << "Unknown row header: " << row_header << "\n";
 			return;
 		}
 
