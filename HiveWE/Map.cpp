@@ -115,7 +115,7 @@ bool Map::save(const fs::path& path) const {
 		int scale = 1;
 		int width = terrain.width - 1;
 		int height = terrain.height - 1;
-		byte header[18] = { 0 };
+		char header[18] = { 0 };
 		int size = height > width ? height : width;
 		if (size < 128 && (size % 32) == 0)
 			scale = 128 / size;
@@ -128,7 +128,7 @@ bool Map::save(const fs::path& path) const {
 		header[17] = 0;
 		std::cout << "Trying to save war3mapPreview.tga... \nScale is: " << scale << std::endl;
 		std::ofstream tgafile("E:\\war3mapPreview.tga", std::ios::binary);
-		tgafile.write((const char*)header, 18);
+		tgafile.write(header, 18);
 		//for (int y = terrain.height - 1; y >= 0; y--) {// if header[17] is 32
 		if (width == height) {
 			for (int y = 0; y < height; y++) {
