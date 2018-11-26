@@ -48,6 +48,7 @@ namespace fs = std::filesystem;
 #endif
 #include <Qsci/qsciscintilla.h>
 #include <Qsci/qscilexercustom.h>
+#include "AspectRatioPixmapLabel.h"
 #include "ColorButton.h"
 #include "JassEditor.h"
 
@@ -100,6 +101,8 @@ namespace fs = std::filesystem;
 #include "Map.h"
 
 #include "Camera.h"
+#include "QRibbon.h"
+#include "MainRibbon.h"
 #include "HiveWE.h"
 #include "GLWidget.h"
 
@@ -108,9 +111,12 @@ namespace fs = std::filesystem;
 #include "ImportManager.h"
 #include "MapInfoEditor.h"
 #include "TriggerEditor.h"
+#include "Palette.h"
 #include "PathingPallete.h"
 #include "TerrainPalette.h"
 #include "DoodadPalette.h"
 #include "TilePicker.h"
 #include "TileSetter.h"
 #include "TilePather.h"
+
+#include "Minimap.h"

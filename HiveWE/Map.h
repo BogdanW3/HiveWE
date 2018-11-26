@@ -26,6 +26,7 @@ public:
 	bool render_brush = true;
 	bool render_lighting = true;
 	bool render_wireframe = false;
+	bool render_debug = false;
 
 	fs::path filesystem_path;
 
@@ -44,12 +45,10 @@ public:
 	double total_time_min = std::numeric_limits<double>::max();
 	double total_time_max = std::numeric_limits<double>::min();
 
-	bool show_timings = false;
-
 	~Map();
 
 	void load(const fs::path& path);
-	bool save(const fs::path& path) const;
+	bool save(const fs::path& path);
 	void play_test();
 	void render(int width, int height);
 };

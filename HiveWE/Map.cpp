@@ -8,9 +8,49 @@ void Map::load(const fs::path& path) {
 	hierarchy.map = mpq::MPQ(path);
 	filesystem_path = fs::absolute(path);
 
+	// Units
+	units_slk = slk::SLK("Units/UnitData.slk");
+	units_meta_slk = slk::SLK("Units/UnitMetaData.slk");
+
+	units_slk.merge(slk::SLK("Units/UnitBalance.slk"));
+	units_slk.merge(slk::SLK("Units/unitUI.slk"));
+	units_slk.merge(slk::SLK("Units/UnitWeapons.slk"));
+	units_slk.merge(slk::SLK("Units/UnitAbilities.slk"));
+
+	units_slk.merge(ini::INI("Units/HumanUnitFunc.txt"));
+	units_slk.merge(ini::INI("Units/OrcUnitFunc.txt"));
+	units_slk.merge(ini::INI("Units/UndeadUnitFunc.txt"));
+	units_slk.merge(ini::INI("Units/NightElfUnitFunc.txt"));
+	units_slk.merge(ini::INI("Units/NeutralUnitFunc.txt"));
+
+	units_slk.merge(ini::INI("Units/HumanUnitStrings.txt"));
+	units_slk.merge(ini::INI("Units/OrcUnitStrings.txt"));
+	units_slk.merge(ini::INI("Units/UndeadUnitStrings.txt"));
+	units_slk.merge(ini::INI("Units/NightElfUnitStrings.txt"));
+	units_slk.merge(ini::INI("Units/NeutralUnitStrings.txt"));
+
+	// Items
+	items_slk = slk::SLK("Units/ItemData.slk");
+	items_slk.merge(ini::INI("Units/ItemFunc.txt"));
+	items_slk.merge(ini::INI("Units/ItemStrings.txt"));
+
+	// Doodads
+	doodads_slk = slk::SLK("Doodads/Doodads.slk");
+	doodads_meta_slk = slk::SLK("Doodads/DoodadMetaData.slk");
+	
+	doodads_slk.substitute(world_edit_strings, "WorldEditStrings");
+	doodads_slk.substitute(world_edit_game_strings, "WorldEditStrings");
+
+	// Destructibles
+	destructibles_slk = slk::SLK("Units/DestructableData.slk");
+	destructibles_meta_slk = slk::SLK("Units/DestructableMetaData.slk");
+
+	destructibles_slk.substitute(world_edit_strings, "WorldEditStrings");
+	destructibles_slk.substitute(world_edit_game_strings, "WorldEditStrings");
+
 	// Trigger strings
 	if (hierarchy.map.file_exists("war3map.wts")) {
-		if (auto t = hierarchy.map.file_open("war3map.wts").read2()) {
+		if (auto t = hierarchy.map.file_open("war3map.wts").read2(); t) {
 			BinaryReader war3map_wts(t.value());
 			trigger_strings.load(war3map_wts);
 		}
@@ -47,7 +87,7 @@ void Map::load(const fs::path& path) {
 
 	// Pathing Map
 	BinaryReader war3map_wpm(hierarchy.map.file_open("war3map.wpm").read());
-	success = pathing_map.load(war3map_wpm, terrain);
+	success = pathing_map.load(war3map_wpm);
 	if (!success) {
 		return;
 	}
@@ -62,7 +102,7 @@ void Map::load(const fs::path& path) {
 		imports.load_dir_file(war3map_dir);
 	}
 
-	imports.poplate_uncategorized();
+	imports.populate_uncategorized();
 
 	// Doodads
 	BinaryReader war3map_doo(hierarchy.map.file_open("war3map.doo").read());
@@ -79,21 +119,23 @@ void Map::load(const fs::path& path) {
 	}
 
 	doodads.create();
+	pathing_map.update_dynamic();
 
-	// Units
+	// Units/Items
+	if (hierarchy.map.file_exists("war3map.w3u")) {
+		BinaryReader war3map_w3u = BinaryReader(hierarchy.map.file_open("war3map.w3u").read());
+		units.load_unit_modifications(war3map_w3u);
+	}
+	if (hierarchy.map.file_exists("war3map.w3t")) {
+		BinaryReader war3map_w3t = BinaryReader(hierarchy.map.file_open("war3map.w3t").read());
+		units.load_item_modifications(war3map_w3t);
+	}
+
 	if (hierarchy.map.file_exists("war3mapUnits.doo")) {
 		BinaryReader war3mapUnits_doo(hierarchy.map.file_open("war3mapUnits.doo").read());
 		units_loaded = units.load(war3mapUnits_doo, terrain);
 
 		if (units_loaded) {
-			if (hierarchy.map.file_exists("war3map.w3u")) {
-				BinaryReader war3map_w3u = BinaryReader(hierarchy.map.file_open("war3map.w3u").read());
-				units.load_unit_modifications(war3map_w3u);
-			}
-			if (hierarchy.map.file_exists("war3map.w3t")) {
-				BinaryReader war3map_w3t = BinaryReader(hierarchy.map.file_open("war3map.w3t").read());
-				units.load_item_modifications(war3map_w3t);
-			}
 			units.create();
 		}
 	}
@@ -106,7 +148,7 @@ void Map::load(const fs::path& path) {
 	loaded = true;
 }
 
-bool Map::save(const fs::path& path) const {
+bool Map::save(const fs::path& path) {
 	std::error_code t;
 
 	if (!hierarchy.map.file_exists("war3mapPreview.tga")) { //Code For generating the minimap preview, same should work for minimap itself, but in blp (war3mapMap.blp)
@@ -128,39 +170,16 @@ bool Map::save(const fs::path& path) const {
 		std::cout << "Trying to save war3mapPreview.tga... \nScale is: " << scale << std::endl;
 		std::ofstream tgafile("E:\\war3mapPreview.tga", std::ios::binary);
 		tgafile.write(header, 18);
-		//for (int y = terrain.height - 1; y >= 0; y--) {// if header[17] is 32
 		if (width == height) {
 			for (int y = 0; y < height; y++) {
 				for (int ys = 0; ys < scale; ys++) {
 					for (int x = 0; x < width; x++) {
 						for (int xs = 0; xs < scale; xs++) {
-							for (int i = -1; i < 1; i++) {
-								for (int j = -1; j < 1; j++) {
-									if (x + i >= 0 && x + i < terrain.width && y + j >= 0 && y + j < terrain.height) {
-										if (terrain.corners[x + i][y + j].cliff) {
-											int texture = terrain.corners[x + i][y + j].cliff_texture;
-											// Number 15 seems to be something
-											if (texture == 15) {
-												texture -= 14;
-											}
-											temp = terrain.cliff_to_ground_texture[texture] * 15;
-										}
-									}
-								}
-							}
-							if (temp)
-							{
-								tgafile.put(temp); //blue?
-								tgafile.put(temp); //green?
-								tgafile.put(temp); //red?
-								temp = 0;
-							}
-							else
-							{
-								tgafile.put(terrain.corners[x][y].ground_texture * 15); //blue?
-								tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
-								tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
-							}
+							auto color = terrain.ground_textures[terrain.real_tile_texture(x, y)]->minimap_color;
+
+							tgafile.put(color.b); //blue?
+							tgafile.put(color.g); //green?
+							tgafile.put(color.r); //red?
 							//tgafile.put(255); //We don't use alpha
 						}
 					}
@@ -181,35 +200,12 @@ bool Map::save(const fs::path& path) const {
 							//tgafile.put(255);
 						}
 						for (int x = 0; x < width; x++) {
-							for (int i = -1; i < 1; i++) {
-								for (int j = -1; j < 1; j++) {
-									if (x + i >= 0 && x + i < terrain.width && y + j >= 0 && y + j < terrain.height) {
-										if (terrain.corners[x + i][y + j].cliff) {
-											int texture = terrain.corners[x + i][y + j].cliff_texture;
-											// Number 15 seems to be something
-											if (texture == 15) {
-												texture -= 14;
-											}
-											temp = terrain.cliff_to_ground_texture[texture] * 15;
-										}
-									}
-								}
-
-							}
 							for (int xs = 0; xs < scale; xs++) {
-								if (temp)
-								{
-									tgafile.put(temp); //blue?
-									tgafile.put(temp); //green?
-									tgafile.put(temp); //red?
-									temp = 0;
-								}
-								else
-								{
-									tgafile.put(terrain.corners[x][y].ground_texture * 15); //blue?
-									tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
-									tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
-								}
+								auto color = terrain.ground_textures[terrain.real_tile_texture(x, y)]->minimap_color;
+
+								tgafile.put(color.b); //blue?
+								tgafile.put(color.g); //green?
+								tgafile.put(color.r); //red?
 								//tgafile.put(255); //We don't use alpha
 							}
 						}
@@ -222,7 +218,8 @@ bool Map::save(const fs::path& path) const {
 						}
 					}
 				}
-			} else {
+			}
+			else {
 				diff = width - height;
 				for (int x = 0; x < width; x++) {
 					for (int xs = 0; xs < scale; xs++) {
@@ -234,34 +231,12 @@ bool Map::save(const fs::path& path) const {
 							//tgafile.put(255);
 						}
 						for (int y = 0; y < height; y++) {
-							for (int i = -1; i < 1; i++) {
-								for (int j = -1; j < 1; j++) {
-									if (x + i >= 0 && x + i < terrain.width && y + j >= 0 && y + j < terrain.height) {
-										if (terrain.corners[x + i][y + j].cliff) {
-											int texture = terrain.corners[x + i][y + j].cliff_texture;
-											// Number 15 seems to be something
-											if (texture == 15) {
-												texture -= 14;
-											}
-											temp = terrain.cliff_to_ground_texture[texture] * 15;
-										}
-									}
-								}
-							}
 							for (int ys = 0; ys < scale; ys++) {
-								if (temp)
-								{
-									tgafile.put(temp); //blue?
-									tgafile.put(temp); //green?
-									tgafile.put(temp); //red?
-									temp = 0;
-								}
-								else
-								{
-									tgafile.put(terrain.corners[x][y].ground_texture * 15); //blue?
-									tgafile.put(terrain.corners[x][y].ground_texture * 15); //green?
-									tgafile.put(terrain.corners[x][y].ground_texture * 15); //red?
-								}
+								auto color = terrain.ground_textures[terrain.real_tile_texture(x, y)]->minimap_color;
+
+								tgafile.put(color.b); //blue?
+								tgafile.put(color.g); //green?
+								tgafile.put(color.r); //red?
 								//tgafile.put(255); //We don't use alpha
 							}
 						}
@@ -291,6 +266,7 @@ bool Map::save(const fs::path& path) const {
 		tgafile.close();
 	}
 
+	// If the map is saved in another location we need to copy the map and switch our working W3X to that one
 	const fs::path complete_path = fs::absolute(path, t);
 	if (complete_path != filesystem_path) {
 		try {
@@ -303,34 +279,23 @@ bool Map::save(const fs::path& path) const {
 		}
 
 		mpq::MPQ new_map(complete_path);
-
 		std::swap(new_map, hierarchy.map);
+	}
 
-		pathing_map.save();
-		terrain.save();
-		doodads.save();
-		units.save();
-		info.save();
-		trigger_strings.save();
+	pathing_map.save();
+	terrain.save();
+	doodads.save();
+	units.save();
+	info.save();
+	trigger_strings.save();
 
-		imports.save();
-		imports.save_dir_file();
+	imports.save();
+	imports.save_dir_file();
 
-		SFileCompactArchive(hierarchy.map.handle, nullptr, false);
-
-		std::swap(new_map, hierarchy.map);
-	} else {
-		pathing_map.save();
-		terrain.save();
-		doodads.save();
-		units.save();
-		info.save();
-		trigger_strings.save();
-
-		imports.save();
-		imports.save_dir_file();
-
-		SFileCompactArchive(hierarchy.map.handle, nullptr, false);
+	bool result = SFileCompactArchive(hierarchy.map.handle, nullptr, false);
+	if (!result) {
+		std::cout << "Compacting error code: " << GetLastError() << "\n";
+		QMessageBox::information(nullptr, "Compacting archive failed", "Compacting the map archive failed. This is not a crucial error, but the size of your map file will be slightly bigger");
 	}
 	return true;
 }
@@ -348,7 +313,7 @@ void Map::play_test() {
 
 	warcraft->start("\"" + warcraft_path + "\"", arguments);
 	warcraft->waitForFinished();
-	hierarchy.game_data.open(hierarchy.warcraft_directory / "Data", 0);
+	hierarchy.game_data.open(hierarchy.warcraft_directory / "Data");
 }
 
 void Map::render(int width, int height) {

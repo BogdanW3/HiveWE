@@ -8,6 +8,8 @@ public:
 	bool apply_tile_pathing = true;
 	bool apply_cliff_pathing = true;
 
+	bool enforce_water_height_limits = true;
+
 	std::string tile_id;
 
 	enum class deformation {
@@ -33,6 +35,7 @@ public:
 	};
 	cliff_operation cliff_operation_type = cliff_operation::level;
 
+	TerrainBrush();
 	void check_nearby(int begx, int begy, int i, int j, QRect& area) const;
 	void apply() override;
 	void apply_end() override;
