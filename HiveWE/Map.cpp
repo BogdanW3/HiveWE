@@ -150,8 +150,11 @@ void Map::load(const fs::path& path) {
 
 bool Map::save(const fs::path& path) {
 	std::error_code t;
+	int temp = 0;
+	fs::path tgapath;
 
 	if (!hierarchy.map.file_exists("war3mapPreview.tga")) { //Code For generating the minimap preview, same should work for minimap itself, but in blp (war3mapMap.blp)
+		temp = 1;
 		int scale = 1;
 		int width = terrain.width - 1;
 		int height = terrain.height - 1;
@@ -167,7 +170,8 @@ bool Map::save(const fs::path& path) {
 		header[16] = 24;
 		header[17] = 0;
 		std::cout << "Trying to save war3mapPreview.tga... \nScale is: " << scale << std::endl;
-		std::ofstream tgafile("E:\\war3mapPreview.tga", std::ios::binary);
+		tgapath = fs::absolute(QDir::tempPath().toStdString() + "/war3mapPreview.tga");
+		std::ofstream tgafile(tgapath.c_str(), std::ios::binary);
 		tgafile.write(header, 18);
 		if (width == height) {
 			for (int y = 0; y < height; y++) {
@@ -251,7 +255,7 @@ bool Map::save(const fs::path& path) {
 			}
 		}
 
-		if ((size * scale % 128) != 0)
+		if (((size * scale) % 128) != 0)
 		{
 			std::wcout << "Map size is not right for creating a minimap image";
 		}
@@ -291,6 +295,9 @@ bool Map::save(const fs::path& path) {
 	imports.save();
 	imports.save_dir_file();
 
+	if (temp)
+		if (!SFileAddFile(hierarchy.map.handle, tgapath.c_str(), "war3mapPreview.tga", 0x200))
+			std::cout << "Saving map Preview to map failed:" << GetLastError() << "\n";
 	bool result = SFileCompactArchive(hierarchy.map.handle, nullptr, false);
 	if (!result) {
 		std::cout << "Compacting error code: " << GetLastError() << "\n";
