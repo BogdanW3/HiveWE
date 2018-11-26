@@ -152,14 +152,13 @@ bool Map::save(const fs::path& path) {
 	std::error_code t;
 
 	if (!hierarchy.map.file_exists("war3mapPreview.tga")) { //Code For generating the minimap preview, same should work for minimap itself, but in blp (war3mapMap.blp)
-		int temp = 0;
 		int scale = 1;
 		int width = terrain.width - 1;
 		int height = terrain.height - 1;
 		char header[18] = { 0 };
 		int size = height > width ? height : width;
-		if (size < 128 && (size % 32) == 0)
-			scale = 128 / size;
+		if (size < 256 && (size % 16) == 0)
+			scale = 256 / size;
 		header[2] = 2;
 		header[12] = size * scale & 0xFF;
 		header[13] = (size * scale >> 8) & 0xFF;
@@ -259,7 +258,7 @@ bool Map::save(const fs::path& path) {
 		static const char footer[26] =
 			"\0\0\0\0"  // no extension area
 			"\0\0\0\0"  // no developer directory
-			"TRUEVISION-XFILE"  // yep, this is a TGA file
+			"TRUEVISION-XFILE"
 			".";
 		tgafile.write(footer, 26);
 
