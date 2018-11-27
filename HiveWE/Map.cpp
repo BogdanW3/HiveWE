@@ -148,6 +148,18 @@ void Map::load(const fs::path& path) {
 	loaded = true;
 }
 
+glm::vec4 Map::get_colour(int i, int j) {
+	if (terrain.corners[i][j].water &&terrain.corner_water_height(i, j) > terrain.corner_height(i, j)) {
+		return glm::vec4(50, 50, 200, 255);
+	}
+	else if (terrain.corners[i][j].cliff || (i > 0 && terrain.corners[i - 1][j].cliff) || (j > 0 && terrain.corners[i][j - 1].cliff) || (i > 0 && j > 0 && terrain.corners[i - 1][j - 1].cliff)) {
+		return terrain.cliff_textures[std::min(1, terrain.corners[i][j].cliff_texture)]->clr;
+	}
+	else {
+		return terrain.ground_textures[terrain.real_tile_texture(i, j)]->minimap_color;
+	}
+
+}
 bool Map::save(const fs::path& path) {
 	std::error_code t;
 	int temp = 0;
@@ -169,7 +181,7 @@ bool Map::save(const fs::path& path) {
 		header[15] = (size * scale >> 8) & 0xFF;
 		header[16] = 24;
 		header[17] = 0;
-		std::cout << "Trying to save war3mapPreview.tga... \nScale is: " << scale << std::endl;
+		std::cout << "Saving war3mapPreview.tga... \nScale is: " << scale << std::endl;
 		tgapath = fs::absolute(QDir::tempPath().toStdString() + "/war3mapPreview.tga");
 		std::ofstream tgafile(tgapath.c_str(), std::ios::binary);
 		tgafile.write(header, 18);
@@ -178,12 +190,11 @@ bool Map::save(const fs::path& path) {
 				for (int ys = 0; ys < scale; ys++) {
 					for (int x = 0; x < width; x++) {
 						for (int xs = 0; xs < scale; xs++) {
-							auto color = terrain.ground_textures[terrain.real_tile_texture(x, y)]->minimap_color;
+							auto color = get_colour(x, y);
 
-							tgafile.put(color.b); //blue?
-							tgafile.put(color.g); //green?
-							tgafile.put(color.r); //red?
-							//tgafile.put(255); //We don't use alpha
+							tgafile.put(color.b);
+							tgafile.put(color.g);
+							tgafile.put(color.r);
 						}
 					}
 				}
@@ -191,81 +202,70 @@ bool Map::save(const fs::path& path) {
 		}
 		else {
 			int diff = 0;
-			if (width < height) {
+			if (height > width) {
 				diff = height - width;
 				for (int y = 0; y < height; y++) {
 					for (int ys = 0; ys < scale; ys++) {
-						for (int delta = 0; delta < diff * scale / 2; delta++)
+						for (int delta = 0; delta < (diff * scale / 2); delta++)
 						{
 							tgafile.put(0);
 							tgafile.put(0);
 							tgafile.put(0);
-							//tgafile.put(255);
 						}
 						for (int x = 0; x < width; x++) {
 							for (int xs = 0; xs < scale; xs++) {
-								auto color = terrain.ground_textures[terrain.real_tile_texture(x, y)]->minimap_color;
+								auto color = get_colour(x, y);
 
-								tgafile.put(color.b); //blue?
-								tgafile.put(color.g); //green?
-								tgafile.put(color.r); //red?
-								//tgafile.put(255); //We don't use alpha
+								tgafile.put(color.b);
+								tgafile.put(color.g);
+								tgafile.put(color.r);
 							}
 						}
-						for (int delta = 0; delta < diff * scale / 2; delta++)
+						for (int delta = 0; delta < (diff * scale / 2); delta++)
 						{
 							tgafile.put(0);
 							tgafile.put(0);
 							tgafile.put(0);
-							//tgafile.put(255);
 						}
 					}
 				}
 			}
 			else {
 				diff = width - height;
-				for (int x = 0; x < width; x++) {
-					for (int xs = 0; xs < scale; xs++) {
-						for (int delta = 0; delta < diff * scale / 2; delta++)
-						{
-							tgafile.put(0);
-							tgafile.put(0);
-							tgafile.put(0);
-							//tgafile.put(255);
-						}
-						for (int y = 0; y < height; y++) {
-							for (int ys = 0; ys < scale; ys++) {
-								auto color = terrain.ground_textures[terrain.real_tile_texture(x, y)]->minimap_color;
 
-								tgafile.put(color.b); //blue?
-								tgafile.put(color.g); //green?
-								tgafile.put(color.r); //red?
-								//tgafile.put(255); //We don't use alpha
+				for (int delta = 0; delta < (diff * scale * width * scale / 2); delta++)
+				{
+					tgafile.put(0);
+					tgafile.put(0);
+					tgafile.put(0);
+				}
+				for (int y = 0; y < height; y++) {
+					for (int ys = 0; ys < scale; ys++) {
+						for (int x = 0; x < width; x++) {
+							for (int xs = 0; xs < scale; xs++) {
+								auto color = get_colour(x, y);
+
+								tgafile.put(color.b);
+								tgafile.put(color.g);
+								tgafile.put(color.r);
 							}
-						}
-						for (int delta = 0; delta < diff * scale / 2; delta++)
-						{
-							tgafile.put(0);
-							tgafile.put(0);
-							tgafile.put(0);
-							//tgafile.put(255);
 						}
 					}
 				}
+				for (int delta = 0; delta < (diff * scale * width * scale / 2); delta++)
+				{
+					tgafile.put(0);
+					tgafile.put(0);
+					tgafile.put(0);
+				}
 			}
 		}
-
-		if (((size * scale) % 128) != 0)
-		{
-			std::wcout << "Map size is not right for creating a minimap image";
-		}
 		static const char footer[26] =
-			"\0\0\0\0"  // no extension area
-			"\0\0\0\0"  // no developer directory
+			"\0\0\0\0"
+			"\0\0\0\0"
 			"TRUEVISION-XFILE"
 			".";
 		tgafile.write(footer, 26);
-
 		tgafile.close();
 	}
 
@@ -295,7 +295,7 @@ bool Map::save(const fs::path& path) {
 	imports.save();
 	imports.save_dir_file();
 
-	if (temp)
+	if (temp) //If the war3mapPreview was generated
 		if (!SFileAddFile(hierarchy.map.handle, tgapath.c_str(), "war3mapPreview.tga", 0x200))
 			std::cout << "Saving map Preview to map failed:" << GetLastError() << "\n";
 	bool result = SFileCompactArchive(hierarchy.map.handle, nullptr, false);

@@ -48,6 +48,7 @@ public:
 	~Map();
 
 	void load(const fs::path& path);
+	glm::vec4 get_colour(int i, int j);
 	bool save(const fs::path& path);
 	void play_test();
 	void render(int width, int height);
