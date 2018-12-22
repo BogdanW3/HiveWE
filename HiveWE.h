@@ -16,6 +16,7 @@ class HiveWE : public QMainWindow {
 public:
 	explicit HiveWE(QWidget* parent = nullptr);
 
+	void create();
 	void load_folder();
 	void load_mpq();
 	void save();
