@@ -1,4 +1,7 @@
 #include "CreationScreen.h"
+#include "BinaryWriter.h"
+#include <fstream>
+#include <iostream>
 
 CreationScreen::CreationScreen(QWidget* parent, const fs::path path) : QDialog(parent) {
 	if (path == "") {
@@ -14,7 +17,7 @@ CreationScreen::CreationScreen(QWidget* parent, const fs::path path) : QDialog(p
 	width->setValidator(new QIntValidator(0, 512, this));
 
 	connect(ui.buttonBox, &QDialogButtonBox::accepted, [&, path]() {
-		save(path);
+		create(path);
 		emit accept();
 		close();
 	});
@@ -26,7 +29,7 @@ CreationScreen::CreationScreen(QWidget* parent, const fs::path path) : QDialog(p
 	show();
 }
 
-void CreationScreen::save(const fs::path path) const {
+void CreationScreen::create(const fs::path path) const {
 	int width = ui.width->text().toInt();
 	int height = ui.height->text().toInt();
 	int mapsize16 = height * width * 16;
@@ -108,9 +111,9 @@ void CreationScreen::save(const fs::path path) const {
 	for (int i = 0; i < (height + 1)*(width + 1); i++)
 	{
 		w3e.write((uint32_t)0);
-		w3e.write((byte)0);
-		w3e.write((byte)0);
-		w3e.write((byte)0);
+		w3e.write((char)0);
+		w3e.write((char)0);
+		w3e.write((char)0);
 	}
 
 	BinaryWriter wpm;
@@ -243,9 +246,9 @@ void CreationScreen::save(const fs::path path) const {
 	w3s.write(0);*/
 
 	BinaryWriter wts;
-	wts.write((byte)0xEF);
-	wts.write((byte)0xBB);
-	wts.write((byte)0xBF);
+	wts.write((char)0xEF);
+	wts.write((char)0xBB);
+	wts.write((char)0xBF);
 
 	BinaryWriter wtg;
 	wtg.write_string("WTG!");
