@@ -117,8 +117,8 @@ target_link_libraries(HiveWE
 	BulletCollision;
 	BulletDynamics
 	BulletSoftBody
-	"C:/vcpkg/packages/libjpeg-turbo_x64-windows/lib/turbojpeg.lib"
-	"C:/vcpkg/packages/qscintilla_x64-windows/lib/qscintilla2_qt5.lib"
+	"%VCPKG_ROOT%/packages/libjpeg-turbo_x64-windows/lib/turbojpeg"
+	"%VCPKG_ROOT%/packages/qscintilla_x64-windows/lib/qscintilla2_qt5"
 )
 
 if(WIN32)
