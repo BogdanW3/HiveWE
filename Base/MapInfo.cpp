@@ -229,9 +229,7 @@ void MapInfo::save() const {
 		| unknown3 * 0x2000
 		| unknown4 * 0x4000
 		| item_classification * 0x8000
-		| water_tinting * 0x10000
-		| accurate_probability_for_calculations * 0x20000
-		| custom_ability_skins * 0x40000;
+		| water_tinting * 0x10000;
 
 	writer.write(flags);
 
@@ -263,9 +261,6 @@ void MapInfo::save() const {
 	
 	writer.write((uint32_t)lua);
 
-	writer.write(supported_modes);
-	writer.write(game_data_version);
-
 	writer.write<uint32_t>(players.size());
 	for (const auto& i : players) {
 		writer.write(i.internal_number);
@@ -276,8 +271,6 @@ void MapInfo::save() const {
 		writer.write(i.starting_position);
 		writer.write(i.ally_low_priorities_flags);
 		writer.write(i.ally_high_priorities_flags);
-		writer.write(i.enemy_low_priorities_flags);
-		writer.write(i.enemy_high_priorities_flags);
 	}
 
 	writer.write<uint32_t>(forces.size());
