@@ -104,7 +104,6 @@ public:
 	int playable_width;
 	int playable_height;
 
-	int all_flags;
 	bool hide_minimap_preview;
 	bool modif_ally_priorities;
 	bool melee_map;
