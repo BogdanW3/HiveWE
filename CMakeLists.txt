@@ -1,3 +1,8 @@
+if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+	set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+			CACHE STRING "")
+endif ()
+
 cmake_minimum_required(VERSION 3.13)
 project (HiveWE CXX)
 
@@ -97,7 +102,6 @@ add_executable(HiveWE
 	"Menus/Custom Widgets/TriggerExplorer.cpp"
 )
 
-target_include_directories(HiveWE PRIVATE ${QSCINTILLA_INCLUDE_DIRS})
 target_include_directories(HiveWE PRIVATE ${JPEG_INCLUDE_DIR}})
 target_include_directories(HiveWE PRIVATE ${BULLET_INCLUDE_DIR})
 target_include_directories(HiveWE PRIVATE "Base" "Base/Brush" "Base/File Formats" "Base/Resources" "Menus" "Menus/Custom Widgets")
@@ -114,11 +118,11 @@ target_link_libraries(HiveWE
 	LinearMath
 	Bullet3Common
 	BulletInverseDynamics
-	BulletCollision;
+	BulletCollision
 	BulletDynamics
 	BulletSoftBody
-	"%VCPKG_ROOT%/packages/libjpeg-turbo_x64-windows/lib/turbojpeg"
-	"%VCPKG_ROOT%/packages/qscintilla_x64-windows/lib/qscintilla2_qt5"
+	"$ENV{VCPKG_ROOT}/packages/libjpeg-turbo_x64-windows/lib/turbojpeg.lib"
+	"$ENV{VCPKG_ROOT}/packages/qscintilla_x64-windows/lib/qscintilla2_qt5.lib"
 )
 
 if(WIN32)

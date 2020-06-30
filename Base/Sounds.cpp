@@ -43,6 +43,8 @@ void Sounds::load(BinaryReader& reader) {
 			reader.read_c_string();
 			reader.read_c_string();
 			reader.advance(18);
+			if (version >= 3)
+				reader.advance(4);
 		}
 	}
 }

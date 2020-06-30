@@ -265,6 +265,9 @@ bool Map::save(const fs::path& path) {
 	triggers.save();
 	triggers.save_jass();
 	triggers.generate_map_script();
+	regions.save();
+	cameras.save();
+	sounds.save();
 
 	return true;
 }
