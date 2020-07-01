@@ -47,6 +47,9 @@ void GameCameras::save() {
 		writer.write<float>(i.fov);
 		writer.write<float>(i.far_z);
 		writer.write<float>(i.near_z);
+		writer.write<float>(i.local_pitch);
+		writer.write<float>(i.local_yaw);
+		writer.write<float>(i.local_roll);
 		writer.write_c_string(i.name);
 	}
 	hierarchy.map_file_write("war3map.w3c", writer.buffer);
