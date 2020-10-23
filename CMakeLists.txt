@@ -53,7 +53,7 @@ add_executable(HiveWE
 	Base/MapInfo.cpp
 	Base/PathingMap.cpp
 	Base/Regions.cpp
-	
+
 	Base/RenderManager.cpp
 	Base/ShadowMap.cpp
 	Base/Sounds.cpp
@@ -90,9 +90,8 @@ add_executable(HiveWE
 	Base/Resources/SkinnedMesh/RenderNode.cpp
 	Base/Resources/SkinnedMesh/SkeletalModelInstance.cpp
 
+	Menus/CreationScreen.cpp
 	Menus/DoodadPalette.cpp
-	
-	
 	Menus/MapInfoEditor.cpp
 	Menus/Minimap.cpp
 	Menus/Palette.cpp
