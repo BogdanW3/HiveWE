@@ -364,7 +364,7 @@ void HiveWE::play_test() {
 		return;
 	}
 	QProcess* warcraft = new QProcess;
-	const QString warcraft_path = QString::fromStdString((hierarchy.warcraft_directory / "_retail_" / "x86_64" / "Warcraft III.exe").string());
+	const QString warcraft_path = QString::fromStdString((hierarchy.warcraft_directory / (hierarchy.ptr ? "_ptr_" : "_retail_") / "x86_64" / "Warcraft III.exe").string());
 	QStringList arguments;
 	arguments << "-launch"
 			  << "-loadfile" << QString::fromStdString(map->filesystem_path.string());
