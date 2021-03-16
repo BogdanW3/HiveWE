@@ -14,7 +14,7 @@ ItemTreeModel::ItemTreeModel(QObject* parent) : BaseTreeModel(parent) {
 		rowToCategory.push_back(value[0]);
 	}
 
-	for (int i = 0; i < items_slk.rows(); i++) {
+	for (uint64_t i = 0; i < items_slk.rows(); i++) {
 		const std::string& id = items_slk.index_to_row.at(i);
 
 		BaseTreeItem* parent_item = getFolderParent(id);

@@ -297,7 +297,7 @@ void HiveWE::load_mpq() {
 void HiveWE::save() {
 	emit saving_initiated();
 	map->save(map->filesystem_path);
-};
+}
 
 void HiveWE::save_as() {
 	QSettings settings;
@@ -388,12 +388,12 @@ void HiveWE::closeEvent(QCloseEvent* event) {
 
 void HiveWE::resizeEvent(QResizeEvent* event) {
 	QMainWindow::resizeEvent(event);
-	QTimer::singleShot(0, [=] { save_window_state(); });
+	QTimer::singleShot(0, [&] { save_window_state(); });
 }
 
 void HiveWE::moveEvent(QMoveEvent* event) {
 	QMainWindow::moveEvent(event);
-	QTimer::singleShot(0, [=] { save_window_state(); });
+	QTimer::singleShot(0, [&] { save_window_state(); });
 }
 
 void HiveWE::switch_warcraft() {

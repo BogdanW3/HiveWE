@@ -10,8 +10,8 @@ class TableModel : public QAbstractTableModel {
 	std::shared_ptr<QIconResource> invalid_icon;
 
 public: 
-	slk::SLK* meta_slk;
 	slk::SLK* slk;
+	slk::SLK* meta_slk;
 	explicit TableModel(slk::SLK* slk, slk::SLK* meta_slk, QObject* parent = nullptr);
 	
 	int rowCount(const QModelIndex& parent = QModelIndex()) const override;

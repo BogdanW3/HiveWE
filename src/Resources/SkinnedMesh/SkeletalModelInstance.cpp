@@ -173,7 +173,7 @@ void SkeletalModelInstance::calculate_sequence_extents(const mdx::TrackHeader<T>
 	current.start = -1;
 	current.right = -1;
 
-	for (int i = 0; i < header.tracks.size(); i++) {
+	for (uint64_t i = 0; i < header.tracks.size(); i++) {
 		const mdx::Track<T>& track = header.tracks[i];
 
 		if (track.frame > local_sequence_end) {

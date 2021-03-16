@@ -204,7 +204,7 @@ void DoodadBrush::mouse_press_event(QMouseEvent* event) {
 		gl->glViewport(0, 0, map->render_manager.window_width, map->render_manager.window_height);
 
 		map->render_manager.colored_static_shader->use();
-		for (int i = 0; i < map->doodads.doodads.size(); i++) {
+		for (uint64_t i = 0; i < map->doodads.doodads.size(); i++) {
 			const Doodad& doodad = map->doodads.doodads[i];
 			const mdx::Extent& extent = doodad.mesh->extent;
 			if (camera->inside_frustrum(doodad.matrix * glm::vec4(extent.minimum, 1.f), doodad.matrix * glm::vec4(extent.maximum, 1.f))) {
@@ -265,7 +265,7 @@ void DoodadBrush::mouse_move_event(QMouseEvent* event) {
 				}
 				drag_start = input_handler.mouse_world;
 
-				for (int i = 0; i < selections.size(); i++) {
+				for (uint64_t i = 0; i < selections.size(); i++) {
 					Doodad* doodad = selections[i];
 					doodad->position += offset;
 					if (!lock_doodad_z) {

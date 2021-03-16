@@ -226,13 +226,13 @@ DoodadPalette::DoodadPalette(QWidget* parent) : Palette(parent) {
 	connect(visible_non_solid, &QRadioButton::clicked, [&]() { brush.state = Doodad::State::visible_non_solid; });
 	connect(visible_solid, &QRadioButton::clicked, [&]() { brush.state = Doodad::State::visible_solid; });
 
-	connect(ui.type, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+	connect(ui.type, QOverload<int>::of(&QComboBox::currentIndexChanged), [&](int index) {
 		// Possible Qt bug. Try swapping the two lines below and see if it crashes when selecting a tree and then swapping to a doodad category
 		destructable_filter_model->setFilterCategory(ui.type->currentData().toString());
 		doodad_filter_model->setFilterCategory(ui.type->currentData().toString());
 	});
 
-	connect(ui.tileset, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+	connect(ui.tileset, QOverload<int>::of(&QComboBox::currentIndexChanged), [&](int index) {
 		destructable_filter_model->setFilterTileset(ui.tileset->currentData().toChar().toLatin1());
 		doodad_filter_model->setFilterTileset(ui.tileset->currentData().toChar().toLatin1());
 	});
@@ -343,7 +343,7 @@ void DoodadPalette::selection_changed(const QModelIndex& index) {
 		toggle->setChecked(true);
 		toggle->setText(QString::number(i));
 		variations->addWidget(toggle, i % 3, i / 3);
-		connect(toggle, &QRibbonButton::toggled, [=](bool checked) {
+		connect(toggle, &QRibbonButton::toggled, [&](bool checked) {
 			if (checked) {
 				brush.add_variation(i);
 			} else {

@@ -460,7 +460,7 @@ QIcon texture_to_icon(fs::path path) {
 	QImage temp_image = QImage(tex->data.data(), tex->width, tex->height, tex->channels == 3 ? QImage::Format::Format_RGB888 : QImage::Format::Format_RGBA8888);
 	auto pix = QPixmap::fromImage(temp_image);
 	return QIcon(pix);
-};
+}
 
 const glm::vec3 TRANSLATION_IDENTITY(0);
 const glm::vec3 SCALE_IDENTITY(1);

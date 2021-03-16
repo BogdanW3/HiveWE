@@ -46,7 +46,7 @@ void Triggers::parse_parameter_structure(BinaryReader& reader, TriggerParameter&
 		parameter.parameters.resize(1);
 		parse_parameter_structure(reader, parameter.parameters.front(), version);
 	}
-};
+}
 
 void Triggers::parse_eca_structure(BinaryReader& reader, ECA& eca, bool is_child, uint32_t version) {
 	eca.type = static_cast<ECA::Type>(reader.read<uint32_t>());
@@ -65,7 +65,7 @@ void Triggers::parse_eca_structure(BinaryReader& reader, ECA& eca, bool is_child
 			parse_eca_structure(reader, i, true, version);
 		}
 	}
-};
+}
 
 void Triggers::load() {
 	BinaryReader reader = hierarchy.map_file_read("war3map.wtg");
@@ -134,7 +134,7 @@ void Triggers::load_version_pre31(BinaryReader& reader, uint32_t version) {
 	reader.advance(4); // dunno
 
 	int variable_category = ++Trigger::next_id;
-	categories.insert(categories.begin(), { variable_category, "Variables", false,  0 });
+	categories.insert(categories.begin(), { variable_category, "Variables", 0, false, 0 });
 
 	variables.resize(reader.read<uint32_t>());
 	for (auto& i : variables) {
@@ -421,6 +421,8 @@ void Triggers::save() const {
 			case Classifier::comment:
 				comment_count++;
 				break;
+			default:
+				fmt::print("Unexpected classifier: {}\n", i.classifier);
 		}
 	}
 

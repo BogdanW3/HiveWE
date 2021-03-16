@@ -21,7 +21,7 @@ AbilityTreeModel::AbilityTreeModel(QObject* parent) : BaseTreeModel(parent) {
 		}
 	}
 
-	for (int i = 0; i < abilities_slk.rows(); i++) {
+	for (uint64_t i = 0; i < abilities_slk.rows(); i++) {
 		const std::string& id = abilities_slk.index_to_row.at(i);
 
 		BaseTreeItem* parent_item = getFolderParent(id);

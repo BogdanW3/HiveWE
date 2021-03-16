@@ -253,7 +253,7 @@ void SkinnedMesh::render_opaque_sd() {
 
 	gl->glNamedBufferData(instance_buffer, render_jobs.size() * sizeof(glm::mat4), render_jobs.data(), GL_STATIC_DRAW);
 
-	for (int i = 0; i < render_jobs.size(); i++) {
+	for (uint64_t i = 0; i < render_jobs.size(); i++) {
 		instance_bone_matrices.insert(instance_bone_matrices.end(), skeletons[i]->world_matrices.begin(), skeletons[i]->world_matrices.begin() + model->bones.size());
 	}
 
@@ -264,7 +264,7 @@ void SkinnedMesh::render_opaque_sd() {
 	gl->glUniform1i(3, model->bones.size());
 
 	std::vector<glm::vec4> layer_colors;
-	for (int k = 0; k < render_jobs.size(); k++) {
+	for (uint64_t k = 0; k < render_jobs.size(); k++) {
 		for (auto& i : geosets) {
 			glm::vec3 geoset_color(1.f);
 			float geoset_anim_visibility = 1.0f;

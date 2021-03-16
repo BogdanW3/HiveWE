@@ -13,7 +13,7 @@ void setTestArgs(Ui::SettingsEditor &ui) {
 						(ui.testteen->currentText() != "Default" ? " -teen " + QString([](int x) {
 		switch (x) { case 1: return "1"; default: return "0"; } }(ui.testteen->currentIndex())) : "") +
 						" -testmapprofile " + ui.profile->text() + " -fixedseed " + (ui.fixedseed->isChecked() ? "1" : "0") + (ui.nowfpause->isChecked() ? " -nowfpause" : ""));
-};
+}
 
 SettingsEditor::SettingsEditor(QWidget* parent)
 	: QDialog(parent) {

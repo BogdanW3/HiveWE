@@ -73,7 +73,7 @@ TriggerExplorer::TriggerExplorer(QWidget* parent) : QTreeView(parent) {
 
 		runOnInitialization->setVisible(false);
 		if (item->type == Classifier::script || item->type == Classifier::gui) {
-			for (int i = 0; i < map->triggers.triggers.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.triggers.size(); i++) {
 				Trigger& trigger = map->triggers.triggers[i];
 				if (trigger.id == item->id) {
 					runOnInitialization->setVisible(item->type == Classifier::gui && trigger.is_script);
@@ -102,7 +102,7 @@ TriggerExplorer::TriggerExplorer(QWidget* parent) : QTreeView(parent) {
 
 		item->enabled = checked;
 
-		for (int i = 0; i < map->triggers.triggers.size(); i++) {
+		for (uint64_t i = 0; i < map->triggers.triggers.size(); i++) {
 			Trigger& trigger = map->triggers.triggers[i];
 			if (trigger.id == item->id) {
 				trigger.is_enabled = checked;
@@ -116,7 +116,7 @@ TriggerExplorer::TriggerExplorer(QWidget* parent) : QTreeView(parent) {
 
 		item->run_on_initialization = checked;
 
-		for (int i = 0; i < map->triggers.triggers.size(); i++) {
+		for (uint64_t i = 0; i < map->triggers.triggers.size(); i++) {
 			Trigger& trigger = map->triggers.triggers[i];
 			if (trigger.id == item->id) {
 				trigger.run_on_initialization = checked;
@@ -130,7 +130,7 @@ TriggerExplorer::TriggerExplorer(QWidget* parent) : QTreeView(parent) {
 
 		item->initially_on = checked;
 
-		for (int i = 0; i < map->triggers.triggers.size(); i++) {
+		for (uint64_t i = 0; i < map->triggers.triggers.size(); i++) {
 			Trigger& trigger = map->triggers.triggers[i];
 			if (trigger.id == item->id) {
 				trigger.initially_on = checked;
@@ -308,7 +308,7 @@ void recursively_delete(TreeItem* parent) {
 		case Classifier::comment:
 		case Classifier::gui:
 		case Classifier::script:
-			for (int i = 0; i < map->triggers.triggers.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.triggers.size(); i++) {
 				const Trigger& trigger = map->triggers.triggers[i];
 				if (trigger.id == parent->id) {
 					map->triggers.triggers.erase(map->triggers.triggers.begin() + i);
@@ -317,7 +317,7 @@ void recursively_delete(TreeItem* parent) {
 			}
 			break;
 		case Classifier::category:
-			for (int i = 0; i < map->triggers.categories.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.categories.size(); i++) {
 				const TriggerCategory& category = map->triggers.categories[i];
 				if (category.id == parent->id) {
 					map->triggers.categories.erase(map->triggers.categories.begin() + i);
@@ -326,7 +326,7 @@ void recursively_delete(TreeItem* parent) {
 			}
 			break;
 		case Classifier::variable:
-			for (int i = 0; i < map->triggers.categories.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.categories.size(); i++) {
 				const TriggerVariable& variable = map->triggers.variables[i] ;
 				if (variable.id == parent->id) {
 					map->triggers.variables.erase(map->triggers.variables.begin() + i);
@@ -335,7 +335,7 @@ void recursively_delete(TreeItem* parent) {
 			}
 			break;
 	}
-};
+}
 
 void TriggerExplorer::deleteSelection() {
 	auto indices = selectionModel()->selectedRows();
@@ -544,7 +544,7 @@ bool TreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int r
 		case Classifier::comment:
 		case Classifier::gui:
 		case Classifier::script:
-			for (int i = 0; i < map->triggers.triggers.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.triggers.size(); i++) {
 				Trigger& trigger = map->triggers.triggers[i];
 				if (trigger.id == childItem->id) {
 					trigger.parent_id = destinationParentItem->id;
@@ -553,7 +553,7 @@ bool TreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int r
 			}
 			break;
 		case Classifier::category:
-			for (int i = 0; i < map->triggers.categories.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.categories.size(); i++) {
 				TriggerCategory& category = map->triggers.categories[i];
 				if (category.id == childItem->id) {
 					category.parent_id = destinationParentItem->id;
@@ -562,7 +562,7 @@ bool TreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int r
 			}
 			break;
 		case Classifier::variable:
-			for (int i = 0; i < map->triggers.categories.size(); i++) {
+			for (uint64_t i = 0; i < map->triggers.categories.size(); i++) {
 				TriggerVariable& variable = map->triggers.variables[i];
 				if (variable.id == childItem->id) {
 					variable.parent_id = destinationParentItem->id;
@@ -599,6 +599,7 @@ QVariant TreeModel::data(const QModelIndex& index, int role) const {
 				case Classifier::comment:
 					return comment_icon;
 			}
+			[[fallthrough]];
 		default:
 			return QVariant();
 	}	

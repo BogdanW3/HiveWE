@@ -43,7 +43,7 @@ QVariant TableModel::data(const QModelIndex& index, int role) const {
 			} else if (type == "unitList") {
 				auto parts = split(field_data, ',');
 				QString result;
-				for (int i = 0; i < parts.size(); i++) {
+				for (uint64_t i = 0; i < parts.size(); i++) {
 					if (!units_slk.row_headers.contains(parts[i])) {
 						continue;
 					}
@@ -56,7 +56,7 @@ QVariant TableModel::data(const QModelIndex& index, int role) const {
 			} else if (type == "abilityList" || type == "abilitySkinList") {
 				auto parts = split(field_data, ',');
 				QString result;
-				for (int i = 0; i < parts.size(); i++) {
+				for (uint64_t i = 0; i < parts.size(); i++) {
 					if (!abilities_slk.row_headers.contains(parts[i])) {
 						continue;
 					}
@@ -69,7 +69,7 @@ QVariant TableModel::data(const QModelIndex& index, int role) const {
 			} else if (type == "upgradeList" ) {
 				auto parts = split(field_data, ',');
 				QString result;
-				for (int i = 0; i < parts.size(); i++) {
+				for (uint64_t i = 0; i < parts.size(); i++) {
 					if (!upgrade_slk.row_headers.contains(parts[i])) {
 						continue;
 					}
@@ -82,7 +82,7 @@ QVariant TableModel::data(const QModelIndex& index, int role) const {
 			} else if (type == "targetList") {
 				auto parts = split(field_data, ',');
 				std::string result;
-				for (int i = 0; i < parts.size(); i++) {
+				for (uint64_t i = 0; i < parts.size(); i++) {
 					for (const auto& [key, value] : unit_editor_data.section(type)) {
 						if (key == "NumValues" || key == "Sort" || key.ends_with("_Alt")) {
 							continue;

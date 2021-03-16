@@ -170,7 +170,7 @@ namespace slk {
 				}
 
 				if (value.size() > 1 && (key_lower == "vertr" || key_lower == "vertg" || key_lower == "vertb")) {
-					for (int i = 0; i < value.size(); i++) {
+					for (uint64_t i = 0; i < value.size(); i++) {
 						const std::string new_key = key_lower + std::to_string(i + 1);
 						if (!column_headers.contains(new_key)) {
 							add_column(new_key);
@@ -182,7 +182,7 @@ namespace slk {
 				}
 
 				std::string final_value;
-				for (int i = 0; i < value.size(); i++) {
+				for (uint64_t i = 0; i < value.size(); i++) {
 					final_value += value[i];
 
 					if (i < value.size() - 1) {

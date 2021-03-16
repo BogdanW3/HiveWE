@@ -36,7 +36,7 @@ void TerrainBrush::check_nearby(const int begx, const int begy, const int i, con
 			}
 		}
 	}
-};
+}
 
 void TerrainBrush::apply_begin() {
 	int width = map->terrain.width;

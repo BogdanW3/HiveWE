@@ -118,7 +118,7 @@ namespace mdx {
 			id = track_id;
 
 			tracks.reserve(tracks_count);
-			for (int i = 0; i < tracks_count; i++) {
+			for (uint32_t i = 0; i < tracks_count; i++) {
 				Track<T> track;
 				track.frame = reader.read<int32_t>();
 				track.value = reader.read<T>();

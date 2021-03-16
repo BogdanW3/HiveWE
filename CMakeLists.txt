@@ -79,6 +79,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux") #Sadly only dynamic triplets work because
 		"$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/lib/libqscintilla2_qt5.so"
 		"$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/lib/libturbojpeg.so"
 	)
+	target_compile_options(HiveWE PRIVATE -Wall -Wextra -Wpedantic -Wno-multichar)
 endif()
 
 if(WIN32)

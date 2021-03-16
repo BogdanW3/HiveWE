@@ -88,7 +88,7 @@ void UnitBrush::mouse_press_event(QMouseEvent* event) {
 
 	if (event->button() == Qt::LeftButton && mode == Mode::selection && !event->modifiers() && input_handler.mouse.y > 0.f) {
 		map->render_manager.colored_skinned_shader->use();
-		for (int i = 0; i < map->units.units.size(); i++) {
+		for (uint64_t i = 0; i < map->units.units.size(); i++) {
 			const Unit& unit = map->units.units[i];
 			if (unit.id == "sloc") {
 				continue;

@@ -14,7 +14,7 @@ UpgradeTreeModel::UpgradeTreeModel(QObject* parent) : BaseTreeModel(parent) {
 		rowToCategory.push_back(value[0]);
 	}
 
-	for (int i = 0; i < upgrade_slk.rows(); i++) {
+	for (uint64_t i = 0; i < upgrade_slk.rows(); i++) {
 		const std::string& id = upgrade_slk.index_to_row.at(i);
 
 		std::string race = upgrade_slk.data("race", id);
