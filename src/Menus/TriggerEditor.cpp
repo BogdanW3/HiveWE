@@ -54,6 +54,7 @@ TriggerEditor::TriggerEditor(QWidget* parent) : QMainWindow(parent) {
 
 	QFileIconProvider icons;
 	gui_icon = icons.icon(QFileIconProvider::File);
+	library_icon = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_Library") + ".dds");
 	script_icon = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_TriggerScript") + ".dds");
 	script_icon_disabled = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_TriggerScriptDisable") + ".dds");
 	variable_icon = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_TriggerGlobalVariable") + ".dds");
@@ -127,13 +128,13 @@ void TriggerEditor::item_clicked(const QModelIndex& index) {
 	ads::CDockWidget* dock_tab = new ads::CDockWidget("");
 	dock_tab->setFeature(ads::CDockWidget::DockWidgetFeature::DockWidgetDeleteOnClose, true);
 
-	if (item->type == Classifier::gui || item->type == Classifier::script) {
+	if (item->type == Classifier::map || item->type == Classifier::gui || item->type == Classifier::script) {
 		QSettings settings;
 		bool comments_enabled = settings.value("comments").toString() != "False";
 
 		QSplitter* splitter = new QSplitter(Qt::Orientation::Vertical);
 
-		if (item->id == 0) { // Map header
+		if (item->type == Classifier::map) {
 			JassEditor* jass_editor = new JassEditor;
 			jass_editor->setObjectName("jass_editor");
 			jass_editor->setText(QString::fromStdString(map->triggers.global_jass));

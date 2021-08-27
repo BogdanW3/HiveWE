@@ -59,14 +59,14 @@ TriggerExplorer::TriggerExplorer(QWidget* parent) : QTreeView(parent) {
 
 		TreeItem* item = static_cast<TreeItem*>(selectionModel()->selectedRows().front().internalPointer());
 
-		addCategory->setVisible(item->id == 0 || item->type == Classifier::category);
+		addCategory->setVisible(item->type == Classifier::map || item->type == Classifier::library || item->type == Classifier::category);
 		addGuiTrigger->setVisible(item->type == Classifier::category);
 		addJassTrigger->setVisible(item->type == Classifier::category);
 		addComment->setVisible(item->type == Classifier::category);
-		renameRow->setVisible(item->id != 0);
-		deleteRow->setVisible(item->id != 0);
+		renameRow->setVisible(item->type != Classifier::map);
+		deleteRow->setVisible(item->type != Classifier::map);
 
-		isEnabled->setVisible(item->id != 0  && (item->type == Classifier::gui || item->type == Classifier::script));
+		isEnabled->setVisible(item->type == Classifier::gui || item->type == Classifier::script);
 		isEnabled->setChecked(item->enabled);
 		initiallyOn->setVisible(item->type == Classifier::gui);
 		initiallyOn->setChecked(item->initially_on);
@@ -150,7 +150,7 @@ void TriggerExplorer::createCategory() {
 
 	TreeItem* parent_item = static_cast<TreeItem*>(index.internalPointer());
 
-	if (parent_item->type != Classifier::category && parent_item->id != map_header_id) {
+	if (parent_item->type != Classifier::map && parent_item->type != Classifier::library && parent_item->type != Classifier::category) {
 		parent_item = parent_item->parent;
 		index = index.parent();
 	}
@@ -177,7 +177,7 @@ void TriggerExplorer::createJassTrigger() {
 	TreeItem* parent_item = static_cast<TreeItem*>(index.internalPointer());
 
 	// Select a category
-	if (parent_item->id == map_header_id) {
+	if (parent_item->type == Classifier::map || parent_item->type == Classifier::library) {
 		parent_item = parent_item->children.front();
 		index = index.child(0, 0);
 	}
@@ -211,7 +211,7 @@ void TriggerExplorer::createGuiTrigger() {
 
 	TreeItem* parent_item = static_cast<TreeItem*>(index.internalPointer());
 
-	if (parent_item->id == map_header_id) {
+	if (parent_item->type == Classifier::map || parent_item->type == Classifier::library) {
 		parent_item = parent_item->children.front();
 		index = index.child(0, 0);
 	}
@@ -244,7 +244,7 @@ void TriggerExplorer::createVariable() {
 
 	TreeItem* parent_item = static_cast<TreeItem*>(index.internalPointer());
 
-	if (parent_item->id == map_header_id) {
+	if (parent_item->type == Classifier::map || parent_item->type == Classifier::library) {
 		parent_item = parent_item->children.front();
 		index = index.child(0, 0);
 	}
@@ -276,7 +276,7 @@ void TriggerExplorer::createComment() {
 
 	TreeItem* parent_item = static_cast<TreeItem*>(index.internalPointer());
 
-	if (parent_item->id == map_header_id) {
+	if (parent_item->type == Classifier::map || parent_item->type == Classifier::library) {
 		parent_item = parent_item->children.front();
 		index = index.child(0, 0);
 	}
@@ -305,22 +305,23 @@ void recursively_delete(TreeItem* parent) {
 	}
 
 	switch (parent->type) {
-		case Classifier::comment:
-		case Classifier::gui:
-		case Classifier::script:
-			for (int i = 0; i < map->triggers.triggers.size(); i++) {
-				const Trigger& trigger = map->triggers.triggers[i];
-				if (trigger.id == parent->id) {
-					map->triggers.triggers.erase(map->triggers.triggers.begin() + i);
-					break;
-				}
-			}
-			break;
+		case Classifier::library:
 		case Classifier::category:
 			for (int i = 0; i < map->triggers.categories.size(); i++) {
 				const TriggerCategory& category = map->triggers.categories[i];
 				if (category.id == parent->id) {
 					map->triggers.categories.erase(map->triggers.categories.begin() + i);
+					break;
+				}
+			}
+			break;
+		case Classifier::gui:
+		case Classifier::comment:
+		case Classifier::script:
+			for (int i = 0; i < map->triggers.triggers.size(); i++) {
+				const Trigger& trigger = map->triggers.triggers[i];
+				if (trigger.id == parent->id) {
+					map->triggers.triggers.erase(map->triggers.triggers.begin() + i);
 					break;
 				}
 			}
@@ -358,15 +359,12 @@ void TriggerExplorer::deleteSelection() {
 TreeModel::TreeModel(QObject* parent) : QAbstractItemModel(parent) {
 	rootItem = new TreeItem();
 
-	TreeItem* map_header = new TreeItem(rootItem);
-	map_header->id = 0;
-	map_header->type = Classifier::script;
-	folders[0] = map_header;
+	folders[-1] = rootItem;
 
 	for (const auto& i : map->triggers.categories) {
 		TreeItem* item = new TreeItem(folders[i.parent_id]);
 		item->id = i.id;
-		item->type = Classifier::category;
+		item->type = i.classifier;
 		folders[i.id] = item;
 	}
 
@@ -399,7 +397,8 @@ TreeModel::TreeModel(QObject* parent) : QAbstractItemModel(parent) {
 
 		gui_icon_disabled = QIcon(pix);
 	}
-
+	
+	library_icon = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_Library") + ".dds");
 	script_icon = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_TriggerScript") + ".dds");
 	script_icon_disabled = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_TriggerScriptDisable") + ".dds");
 	variable_icon = texture_to_icon(world_edit_data.data("WorldEditArt", "SEIcon_TriggerGlobalVariable") + ".dds");
@@ -522,11 +521,11 @@ bool TreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int r
 	TreeItem* destinationParentItem = static_cast<TreeItem*>(destinationParentIndex.internalPointer());
 	TreeItem* childItem = static_cast<TreeItem*>(child.internalPointer());
 
-	if (destinationParentItem->id == map_header_id && childItem->type != Classifier::category) {
+	if ((destinationParentItem->type == Classifier::map || destinationParentItem->type == Classifier::library) && childItem->type != Classifier::category) {
 		return false;
 	}
 
-	if (destinationParentItem->id != map_header_id && destinationParentItem->type != Classifier::category) {
+	if (destinationParentItem->type != Classifier::map && destinationParentItem->type != Classifier::library && destinationParentItem->type != Classifier::category) {
 		destinationParentItem = destinationParentItem->parent;
 		destinationParentIndex = destinationParentIndex.parent();
 	}
@@ -588,16 +587,20 @@ QVariant TreeModel::data(const QModelIndex& index, int role) const {
 			return item->data(index.column());
 		case Qt::DecorationRole:
 			switch (item->type) {
+				case Classifier::map:
+					return script_icon;
+				case Classifier::library:
+					return library_icon;
 				case Classifier::category:
 					return folder_icon;
-				case Classifier::script:
-					return item->enabled ? script_icon : script_icon_disabled;
 				case Classifier::gui:
 					return item->enabled ? gui_icon : gui_icon_disabled;
-				case Classifier::variable:
-					return variable_icon;
+				case Classifier::script:
+					return item->enabled ? script_icon : script_icon_disabled;
 				case Classifier::comment:
 					return comment_icon;
+				case Classifier::variable:
+					return variable_icon;
 			}
 		default:
 			return QVariant();
@@ -618,7 +621,7 @@ Qt::ItemFlags TreeModel::flags(const QModelIndex& index) const {
 
 	TreeItem* item = static_cast<TreeItem*>(index.internalPointer());
 
-	return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | ((item->id == map_header_id) ? Qt::ItemFlag::NoItemFlags : Qt::ItemIsDragEnabled) | Qt::ItemIsDropEnabled;
+	return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | ((item->type == Classifier::map || item->type == Classifier::library) ? Qt::ItemFlag::NoItemFlags : Qt::ItemIsDragEnabled) | Qt::ItemIsDropEnabled;
 }
 
 Qt::DropActions TreeModel::supportedDropActions() const {
@@ -701,16 +704,22 @@ QVariant TreeItem::data(int column) const {
 	}
 
 	switch (type) {
-		case Classifier::comment:
+		case Classifier::map:
+			return "Map Header";
+		case Classifier::library:
+		case Classifier::category:
+			for (const auto& i : map->triggers.categories) {
+				if (i.id == id) {
+					return QString::fromStdString(i.name);
+				}
+			}
 		case Classifier::gui:
+		case Classifier::comment:
 		case Classifier::script:
 			for (const auto& i : map->triggers.triggers) {
 				if (i.id == id) {
 					return QString::fromStdString(i.name);
 				}
-			}
-			if (id == 0) {
-				return "Map Header";
 			}
 			break;
 		case Classifier::variable:
@@ -720,12 +729,6 @@ QVariant TreeItem::data(int column) const {
 				}
 			}
 			break;
-		case Classifier::category:
-			for (const auto& i : map->triggers.categories) {
-				if (i.id == id) {
-					return QString::fromStdString(i.name);
-				}
-			}
 	}
 	return "Not found";
 }
@@ -736,8 +739,17 @@ bool TreeItem::setData(const QModelIndex& index, const QVariant& value, int role
 	}
 
 	switch (type) {
-		case Classifier::comment:
+		case Classifier::library:
+		case Classifier::category:
+			for (auto& i : map->triggers.categories) {
+				if (i.id == id) {
+					i.name = value.toString().toStdString();
+					return true;
+				}
+			}
+			break;
 		case Classifier::gui:
+		case Classifier::comment:
 		case Classifier::script:
 			for (auto& i : map->triggers.triggers) {
 				if (i.id == id) {
@@ -754,15 +766,6 @@ bool TreeItem::setData(const QModelIndex& index, const QVariant& value, int role
 				}
 			}
 			break;
-		case Classifier::category:
-			for (auto& i : map->triggers.categories) {
-				if (i.id == id) {
-					i.name = value.toString().toStdString();
-					return true;
-				}
-			}
-			break;
-
 	}
 	return false;
 }

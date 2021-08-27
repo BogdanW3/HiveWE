@@ -8,23 +8,23 @@
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 
+enum class Classifier
+{
+	map = 1,
+	library = 2,
+	category = 4,
+	gui = 8,
+	comment = 16,
+	script = 32,
+	variable = 64
+};
+
 struct TriggerCategory {
+	Classifier classifier;
 	int id;
 	std::string name;
 	uint32_t unknown;
 	bool is_comment = false;
-	int parent_id;
-};
-
-struct TriggerVariable {
-	std::string name;
-	std::string type;
-	uint32_t unknown;
-	bool is_array;
-	int array_size = 0;
-	bool is_initialized;
-	std::string initial_value;
-	int id;
 	int parent_id;
 };
 
@@ -75,14 +75,6 @@ struct ECA {
 	std::vector<ECA> ecas;
 };
 
-enum class Classifier {
-	category = 4,
-	gui = 8,
-	comment = 16,
-	script = 32,
-	variable = 64
-};
-
 struct Trigger {
 	Classifier classifier;
 	int id;
@@ -98,6 +90,18 @@ struct Trigger {
 	std::vector<ECA> ecas;
 
 	static inline int next_id = 0;
+};
+
+struct TriggerVariable {
+	std::string name;
+	std::string type;
+	uint32_t unknown;
+	bool is_array;
+	int array_size = 0;
+	bool is_initialized;
+	std::string initial_value;
+	int id;
+	int parent_id;
 };
 
 class Triggers {

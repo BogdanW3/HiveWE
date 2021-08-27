@@ -134,7 +134,8 @@ void Triggers::load_version_pre31(BinaryReader& reader, uint32_t version) {
 	reader.advance(4); // dunno
 
 	int variable_category = ++Trigger::next_id;
-	categories.insert(categories.begin(), { variable_category, "Variables", false,  0 });
+	categories.insert(categories.begin(), { Classifier::map, 0, "Map Header", 0, false, -1 });
+	categories.insert(categories.begin(), { Classifier::category, variable_category, "Variables", 0, false, 0 });
 
 	variables.resize(reader.read<uint32_t>());
 	for (auto& i : variables) {
@@ -189,15 +190,16 @@ void Triggers::load_version_31(BinaryReader& reader, uint32_t version) {
 	if (sub_version != 7 && sub_version != 4) {
 		fmt::print("Unknown 1.31 WTG subformat! Trying anyway.\n");
 	}
+	
+	reader.advance(4); // map_count
+	reader.advance(4 * reader.read<uint32_t>()); //map ids of deleted maps
 
-	unknown1 = reader.read<uint32_t>();
-	unknown2 = reader.read<uint32_t>();
-	unknown3 = reader.read<uint32_t>();
-	unknown4 = reader.read<uint32_t>();
-
+	reader.advance(4); // library_count
+	reader.advance(4 * reader.read<uint32_t>()); //library ids of deleted libraries
+	
 	reader.advance(4); // category_count
 	reader.advance(4 * reader.read<uint32_t>()); //category ids of deleted categories
-	
+
 	reader.advance(4); // trigger_count
 	reader.advance(4 * reader.read<uint32_t>()); //trigger ids of deleted triggers
 
@@ -234,30 +236,15 @@ void Triggers::load_version_31(BinaryReader& reader, uint32_t version) {
 	}
 	
 	uint32_t element_count = reader.read<uint32_t>();
-	unknown8 = reader.read<uint32_t>();	
-	unknown9 = reader.read<uint32_t>();
 
-	reader.advance_c_string(); //last name the map was saved under, don't care
-
-	unknown10 = reader.read<uint32_t>();
-	unknown11 = reader.read<uint32_t>();
-	if (sub_version == 7) {
-		unknown12 = reader.read<uint32_t>();
-	}
-
-	if (reader.remaining() == 0) {
-		if (element_count != 1) {
-			fmt::print("Possibly corrupt WTG!\n");
-		}
-
-		return;
-	}
-
-	for (uint32_t i = 0; i < (element_count - 1); i++) {
+	for (uint32_t i = 0; i < element_count; i++) {
 		Classifier classifier = static_cast<Classifier>(reader.read<uint32_t>());
 		switch (classifier) {
+			case Classifier::map:
+			case Classifier::library:
 			case Classifier::category: {
 				TriggerCategory cat;
+				cat.classifier = classifier;
 				cat.id = reader.read<uint32_t>();
 				cat.name = reader.read_c_string();
 				if (sub_version == 7) {
@@ -453,17 +440,10 @@ void Triggers::save() const {
 		writer.write<uint32_t>(i.parent_id);
 	}
 
-	writer.write<uint32_t>(categories.size() + triggers.size() + variables.size() +  1);
-	writer.write<uint32_t>(unknown8);
-	writer.write<uint32_t>(unknown9);
-	writer.write_c_string("It'll quench ya");
-
-	writer.write<uint32_t>(unknown10);
-	writer.write<uint32_t>(unknown11);
-	writer.write<uint32_t>(unknown12);
+	writer.write<uint32_t>(categories.size() + triggers.size() + variables.size());
 	
 	for (const auto& i : categories) {
-		writer.write<uint32_t>(static_cast<int>(Classifier::category));
+		writer.write<uint32_t>(i.classifier);
 		writer.write<uint32_t>(i.id);
 		writer.write_c_string(i.name);
 		writer.write<uint32_t>(i.is_comment);

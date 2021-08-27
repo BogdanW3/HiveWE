@@ -191,7 +191,7 @@ JassToken JassTokenizer::next() {
 						stop = idx_ + 2;
 					}
 
-					while (at(stop) != '\r' && at(stop) != '\n') {
+					while (at(stop) != '\r' && at(stop) != '\n'&& at(stop) != '\0') {
 						stop++;
 					}
 					break;

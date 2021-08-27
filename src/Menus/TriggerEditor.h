@@ -35,6 +35,7 @@ private:
 	QPlainTextEdit* compile_output = new QPlainTextEdit;
 
 	QIcon folder_icon;
+	QIcon library_icon;
 	QIcon gui_icon;
 	QIcon gui_icon_disabled;
 	QIcon script_icon;
