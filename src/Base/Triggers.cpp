@@ -380,18 +380,35 @@ void Triggers::print_eca_structure(BinaryWriter& writer, const ECA& eca, bool is
 	}
 }
 
-void Triggers::save() const {
- 	BinaryWriter writer;
+std::vector<uint8_t> Triggers::export_data() const {
+	BinaryWriter writer;
 	writer.write_string("WTG!");
 	writer.write<uint32_t>(write_version);
 	writer.write<uint32_t>(write_sub_version);
 
-	writer.write<uint32_t>(unknown1);
-	writer.write<uint32_t>(unknown2);
-	writer.write<uint32_t>(unknown3);
-	writer.write<uint32_t>(unknown4);
+	int map_count = 0;
+	int library_count = 0;
+	int category_count = 0;
+	for (const auto& i : categories) {
+		switch (i.classifier) {
+			case Classifier::map:
+				map_count++;
+				break;
+			case Classifier::library:
+				library_count++;
+				break;
+			case Classifier::category:
+				category_count++;
+				break;
+		}
+	}
+	writer.write<uint32_t>(map_count);
+	writer.write<uint32_t>(0); // Deleted mapheader count
 
-	writer.write<uint32_t>(categories.size());
+	writer.write<uint32_t>(library_count);
+	writer.write<uint32_t>(0); // Deleted library count
+
+	writer.write<uint32_t>(category_count);
 	writer.write<uint32_t>(0); // Deleted category count
 
 	int trigger_count = 0;
@@ -412,7 +429,7 @@ void Triggers::save() const {
 	}
 
 	writer.write<uint32_t>(trigger_count);
-	writer.write<uint32_t>(0); // Deleted category count
+	writer.write<uint32_t>(0); // Deleted trigger count
 
 	writer.write<uint32_t>(comment_count);
 	writer.write<uint32_t>(0); // Deleted comment count
@@ -441,7 +458,7 @@ void Triggers::save() const {
 	}
 
 	writer.write<uint32_t>(categories.size() + triggers.size() + variables.size());
-	
+
 	for (const auto& i : categories) {
 		writer.write<uint32_t>(i.classifier);
 		writer.write<uint32_t>(i.id);
@@ -475,11 +492,14 @@ void Triggers::save() const {
 		writer.write_c_string(i.name);
 		writer.write<uint32_t>(i.parent_id);
 	}
-
-	hierarchy.map_file_write("war3map.wtg", writer.buffer);
+	return writer.buffer;
 }
 
-void Triggers::save_jass() const {
+void Triggers::save() const {
+	hierarchy.map_file_write("war3map.wtg", export_data());
+}
+
+std::vector<uint8_t> Triggers::export_jass() const {
 	BinaryWriter writer;
 
 	writer.write<uint32_t>(write_version);
@@ -508,8 +528,11 @@ void Triggers::save_jass() const {
 			}
 		}
 	}
+	return writer.buffer;
+}
 
-	hierarchy.map_file_write("war3map.wct", writer.buffer);
+void Triggers::save_jass() const {
+	hierarchy.map_file_write("war3map.wct", export_jass());
 }
 
 void Triggers::generate_global_variables(BinaryWriter& writer, std::unordered_map<std::string, std::string>& unit_variables, std::unordered_map<std::string, std::string>& destructable_variables) {

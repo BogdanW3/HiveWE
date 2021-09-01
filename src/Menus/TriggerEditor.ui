@@ -37,6 +37,7 @@
    <addaction name="actionCreateJassTrigger"/>
    <addaction name="actionCreateVariable"/>
    <addaction name="actionCreateComment"/>
+   <addaction name="actionExportTriggers"/>
   </widget>
   <action name="actionGenerateScript">
    <property name="icon">
@@ -91,6 +92,14 @@
    </property>
    <property name="toolTip">
     <string>Create a category</string>
+   </property>
+  </action>
+  <action name="actionExportTriggers">
+   <property name="text">
+    <string>Export Triggers</string>
+   </property>
+   <property name="toolTip">
+    <string>Export Map Triggers</string>
    </property>
   </action>
  </widget>

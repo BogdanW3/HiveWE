@@ -172,7 +172,9 @@ public:
 	void load_version_31(BinaryReader& reader, uint32_t version);
 	void load_version_pre31(BinaryReader& reader, uint32_t version);
 	void load_jass();
+	std::vector<uint8_t> export_data() const;
 	void save() const;
+	std::vector<uint8_t> export_jass() const;
 	void save_jass() const;
 
 	// Returns compile output which could contain errors or general information

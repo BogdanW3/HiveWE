@@ -9,6 +9,9 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QFileIconProvider>
+#include <QTreeWidget>
+#include <QFileDialog>
+#include <fstream>
 
 #include "Utilities.h"
 #include "HiveWE.h"
@@ -16,7 +19,6 @@
 #include "JassEditor.h"
 #include "SearchWindow.h"
 #include "VariableEditor.h"
-#include <QTreeWidget>
 
 constexpr int map_header_id = 0;
 
@@ -69,6 +71,7 @@ TriggerEditor::TriggerEditor(QWidget* parent) : QMainWindow(parent) {
 	ui.actionCreateJassTrigger->setIcon(script_icon);
 	ui.actionCreateVariable->setIcon(variable_icon);
 	ui.actionCreateComment->setIcon(comment_icon);
+	ui.actionExportTriggers->setIcon(library_icon);
   
 	connect(ui.actionGenerateScript, &QAction::triggered, [&]() {
 		save_changes();
@@ -79,7 +82,35 @@ TriggerEditor::TriggerEditor(QWidget* parent) : QMainWindow(parent) {
 	connect(ui.actionCreateJassTrigger, &QAction::triggered, explorer, &TriggerExplorer::createJassTrigger);
 	connect(ui.actionCreateVariable, &QAction::triggered, explorer, &TriggerExplorer::createVariable);
 	connect(ui.actionCreateComment, &QAction::triggered, explorer, &TriggerExplorer::createComment);
+	connect(ui.actionExportTriggers, &QAction::triggered, [&]() {
+		QSettings settings;
+		fs::path file_name = QFileDialog::getSaveFileName(this, "Choose Export Location",
+				settings.value("exportDirectory", QString::fromStdString(hierarchy.map_directory.string())).toString(),
+				"Trigger Data (*.wtg)").toStdString();
 
+		if (file_name.empty()) {
+			return;
+		}
+		save_changes();
+		std::vector<uint8_t> data = map->triggers.export_data();
+		std::ofstream outfile(file_name, std::ios::binary);
+
+		if (!outfile) {
+			throw std::runtime_error("Error exporting file " + file_name.string());
+		}
+
+		outfile.write(reinterpret_cast<char const*>(data.data()), data.size());
+
+		std::vector<uint8_t> jass = map->triggers.export_jass();
+		file_name = file_name.replace_extension(".wct");
+		std::ofstream jassfile(file_name, std::ios::binary);
+
+		if (!jassfile) {
+			throw std::runtime_error("Error exporting file " + file_name.string());
+		}
+
+		jassfile.write(reinterpret_cast<char const*>(jass.data()), jass.size());
+	});
 	connect(explorer, &QTreeView::doubleClicked, this, &TriggerEditor::item_clicked);
 	connect(explorer, &TriggerExplorer::itemAboutToBeDeleted, [&](TreeItem* item) {
 		if (auto found = dock_manager->findDockWidget(QString::number(item->id)); found) {
@@ -114,7 +145,7 @@ void TriggerEditor::focus_search_window() {
 
 void TriggerEditor::item_clicked(const QModelIndex& index) {
 	TreeItem* item = static_cast<TreeItem*>(index.internalPointer());
-	if (item->type == Classifier::category) {
+	if (item->type == Classifier::library || item->type == Classifier::category) {
 		return;
 	}
 
