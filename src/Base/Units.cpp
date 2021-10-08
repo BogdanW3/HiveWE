@@ -156,7 +156,7 @@ void Units::save() const {
 			writer.write<float>(i.angle);
 			writer.write<glm::vec3>(i.scale * 128.f);
 
-			writer.write_string(i.skin_id);
+			//32 writer.write_string(i.skin_id);
 
 			writer.write<uint8_t>(i.flags);
 

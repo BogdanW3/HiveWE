@@ -159,13 +159,20 @@ public:
 	std::vector<TechAvailability> available_tech;
 	std::vector<RandomUnitTable> random_unit_tables;
 	std::vector<RandomItemTable> random_item_tables;
+	
+	//32 static constexpr int write_version = 31;
+	//32 static constexpr int write_editor_version = 6105;
+	//32 static constexpr int write_game_version_major = 1;
+	//32 static constexpr int write_game_version_minor = 32;
+	//32 static constexpr int write_game_version_patch = 10;
+	//32 static constexpr int write_game_version_build = 17734;
 
-	static constexpr int write_version = 31;
-	static constexpr int write_editor_version = 6105;
+	static constexpr int write_version = 28;
+	static constexpr int write_editor_version = 6072;
 	static constexpr int write_game_version_major = 1;
-	static constexpr int write_game_version_minor = 32;
+	static constexpr int write_game_version_minor = 31;
 	static constexpr int write_game_version_patch = 1;
-	static constexpr int write_game_version_build = 14604;
+	static constexpr int write_game_version_build = 12164;
 
 	void load();
 	void save() const;

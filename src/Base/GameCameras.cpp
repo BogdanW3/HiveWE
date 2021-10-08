@@ -34,5 +34,26 @@ void GameCameras::load() {
 }
 
 void GameCameras::save() {
+	BinaryWriter writer;
+	writer.write<uint32_t>(0);
 
+	writer.write<uint32_t>(cameras.size());
+	for (auto& i : cameras) {
+		writer.write<float>(i.target_x);
+		writer.write<float>(i.target_y);
+		writer.write<float>(i.z_offset);
+		writer.write<float>(i.rotation);
+		writer.write<float>(i.angle_of_attack);
+		writer.write<float>(i.distance);
+		writer.write<float>(i.roll);
+		writer.write<float>(i.fov);
+		writer.write<float>(i.far_z);
+		writer.write<float>(i.near_z);
+		writer.write<float>(i.local_pitch);
+		writer.write<float>(i.local_yaw);
+		writer.write<float>(i.local_roll);
+		writer.write_c_string(i.name);
+
+	}
+	hierarchy.map_file_write("war3map.w3c", writer.buffer);
 }

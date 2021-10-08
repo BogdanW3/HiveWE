@@ -63,5 +63,31 @@ void Sounds::load() {
 }
 
 void Sounds::save() const {
+	BinaryWriter writer;
+	writer.write<uint32_t>(1);
 
+	writer.write<uint32_t>(sounds.size());
+	for (auto& i : sounds) {
+		writer.write_c_string(i.name);
+		writer.write_c_string(i.file);
+		writer.write_c_string(i.eax_effect);
+		writer.write<int>(i.looping + 0x2 * i.is_3d + 0x4 * i.stop_out_of_range + 0x8 * i.music);
+		writer.write<uint32_t>(i.fade_in_rate);
+		writer.write<uint32_t>(i.fade_out_rate);
+		writer.write<uint32_t>(i.volume);
+		writer.write<float>(i.pitch);
+		writer.write<float>(i.pitch_variance);
+		writer.write<uint32_t>(i.priority);
+		writer.write<uint32_t>(i.channel);
+		writer.write<float>(i.min_distance);
+		writer.write<float>(i.max_distance);
+		writer.write<float>(i.distance_cutoff);
+		writer.write<float>(i.cone_inside);
+		writer.write<float>(i.cone_outside);
+		writer.write<uint32_t>(i.cone_outside_volume);
+		writer.write<float>(i.cone_orientation_x);
+		writer.write<float>(i.cone_orientation_y);
+		writer.write<float>(i.cone_orientation_z);
+	}
+	hierarchy.map_file_write("war3map.w3s", writer.buffer);
 }

@@ -233,11 +233,20 @@ void Map::load(const fs::path& path) {
 	begin = std::chrono::steady_clock::now();
 
 	// Doodads
-	if (hierarchy.map_file_exists("war3map.w3d")) {
+
+	if (hierarchy.file_exists("war3campaign.w3d")) {
+		load_modification_file("war3campaign.w3d", doodads_slk, doodads_meta_slk, true);
+	}
+
+	if (hierarchy.file_exists("war3map.w3d")) {
 		load_modification_file("war3map.w3d", doodads_slk, doodads_meta_slk, true);
 	}
 
-	if (hierarchy.map_file_exists("war3map.w3b")) {
+	if (hierarchy.file_exists("war3campaign.w3b")) {
+		load_modification_file("war3campaign.w3b", destructibles_slk, destructibles_meta_slk, false);
+	}
+
+	if (hierarchy.file_exists("war3map.w3b")) {
 		load_modification_file("war3map.w3b", destructibles_slk, destructibles_meta_slk, false);
 	}
 
@@ -247,12 +256,19 @@ void Map::load(const fs::path& path) {
 	std::cout << "Doodad loading: " << (std::chrono::steady_clock::now() - begin).count() / 1'000'000 << "ms\n";
 	begin = std::chrono::steady_clock::now();
 
+	if (hierarchy.file_exists("war3campaign.w3u")) {
+		load_modification_file("war3campaign.w3u", units_slk, units_meta_slk, false);
+	}
 
-	if (hierarchy.map_file_exists("war3map.w3u")) {
+	if (hierarchy.file_exists("war3map.w3u")) {
 		load_modification_file("war3map.w3u", units_slk, units_meta_slk, false);
 	}
 
-	if (hierarchy.map_file_exists("war3map.w3t")) {
+	if (hierarchy.file_exists("war3campaign.w3t")) {
+		load_modification_file("war3campaign.w3t", items_slk, items_meta_slk, false);
+	}
+
+	if (hierarchy.file_exists("war3map.w3t")) {
 		load_modification_file("war3map.w3t", items_slk, items_meta_slk, false);
 	}
 
@@ -267,32 +283,44 @@ void Map::load(const fs::path& path) {
 	begin = std::chrono::steady_clock::now();
 
 	// Abilities 
-	if (hierarchy.map_file_exists("war3map.w3a")) {
+	if (hierarchy.file_exists("war3campaign.w3a")) {
+		load_modification_file("war3campaign.w3a", abilities_slk, abilities_meta_slk, true);
+	}
+	
+	if (hierarchy.file_exists("war3map.w3a")) {
 		load_modification_file("war3map.w3a", abilities_slk, abilities_meta_slk, true);
 	}
 
 	// Buffs
-	if (hierarchy.map_file_exists("war3map.w3h")) {
+	if (hierarchy.file_exists("war3campaign.w3h")) {
+		load_modification_file("war3campaign.w3h", buff_slk, buff_meta_slk, false);
+	}
+
+	if (hierarchy.file_exists("war3map.w3h")) {
 		load_modification_file("war3map.w3h", buff_slk, buff_meta_slk, false);
 	}
 
 	// Upgrades
-	if (hierarchy.map_file_exists("war3map.w3q")) {
+	if (hierarchy.file_exists("war3campaign.w3q")) {
+		load_modification_file("war3campaign.w3q", upgrade_slk, upgrade_meta_slk, true);
+	}
+
+	if (hierarchy.file_exists("war3map.w3q")) {
 		load_modification_file("war3map.w3q", upgrade_slk, upgrade_meta_slk, true);
 	}
 
 	// Regions
-	if (hierarchy.map_file_exists("war3map.w3r")) {
+	if (hierarchy.file_exists("war3map.w3r")) {
 		regions.load();
 	}
 	
 	// Cameras
-	if (hierarchy.map_file_exists("war3map.w3c")) {
+	if (hierarchy.file_exists("war3map.w3c")) {
 		cameras.load();
 	}
 
 	// Sounds
-	if (hierarchy.map_file_exists("war3map.w3s")) {
+	if (hierarchy.file_exists("war3map.w3s")) {
 		sounds.load();
 	}
 
@@ -360,6 +388,9 @@ bool Map::save(const fs::path& path) {
 	triggers.save_jass();
 	triggers.generate_map_script();
 	imports.save();
+	regions.save();
+	cameras.save();
+	sounds.save();
 
 	return true;
 }

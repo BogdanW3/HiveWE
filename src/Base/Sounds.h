@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "BinaryReader.h"
+#include "BinaryWriter.h"
+#include "Hierarchy.h"
 
 struct Sound {
 	std::string name;

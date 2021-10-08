@@ -259,8 +259,8 @@ void MapInfo::save() const {
 	
 	writer.write((uint32_t)lua);
 
-	writer.write(supported_modes);
-	writer.write(game_data_version);
+	//32 writer.write(supported_modes);
+	//32 writer.write(game_data_version);
 
 	writer.write<uint32_t>(players.size());
 	for (const auto& i : players) {
@@ -272,8 +272,8 @@ void MapInfo::save() const {
 		writer.write(i.starting_position);
 		writer.write(i.ally_low_priorities_flags);
 		writer.write(i.ally_high_priorities_flags);
-		writer.write(i.enemy_low_priorities_flags);
-		writer.write(i.enemy_high_priorities_flags);
+		//32 writer.write(i.enemy_low_priorities_flags);
+		//32 writer.write(i.enemy_high_priorities_flags);
 	}
 
 	writer.write<uint32_t>(forces.size());

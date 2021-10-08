@@ -139,7 +139,7 @@ void Doodads::save() const {
 		writer.write<float>(i.angle);
 		writer.write<glm::vec3>(i.scale);
 
-		writer.write_string(i.skin_id);
+		//32 writer.write_string(i.skin_id);
 
 		writer.write<uint8_t>(static_cast<int>(i.state));
 		writer.write<uint8_t>(i.life);
