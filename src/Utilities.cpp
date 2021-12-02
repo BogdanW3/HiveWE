@@ -172,7 +172,7 @@ fs::path find_warcraft_directory() {
 }
 
 void load_modification_file(const std::string file_name, slk::SLK& base_data, slk::SLK& meta_slk, bool optional_ints) {
-	BinaryReader reader = hierarchy.map_file_read(file_name);
+	BinaryReader reader = hierarchy.open_file(file_name);
 
 	const int version = reader.read<uint32_t>();
 	if (version != 1 && version != 2) {

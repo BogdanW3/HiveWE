@@ -265,7 +265,9 @@ namespace slk {
 	/// Copies the row with header row_header to a new line with the new header as new_row_header
 	void SLK::copy_row(const std::string_view row_header, std::string_view new_row_header, bool copy_shadow_data) {
 		assert(base_data.contains(row_header));
-		assert(!base_data.contains(new_row_header));
+		//assert(!base_data.contains(new_row_header));
+		if (base_data.contains(new_row_header))
+			return;
 
 		// Get a weird allocation error if not done via a temporary 19/06/2021
 		const auto t = base_data.at(row_header);

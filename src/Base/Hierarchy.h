@@ -15,8 +15,8 @@ public:
 	casc::CASC game_data;
 	json::JSON aliases;
 
+	fs::path campaign_directory;
 	fs::path map_directory;
-	fs::path warcraft_directory;
 	fs::path root_directory;
 
 	bool ptr;
