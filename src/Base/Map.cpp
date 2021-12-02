@@ -286,7 +286,7 @@ void Map::load(const fs::path& path) {
 	if (hierarchy.file_exists("war3campaign.w3a")) {
 		load_modification_file("war3campaign.w3a", abilities_slk, abilities_meta_slk, true);
 	}
-	
+
 	if (hierarchy.file_exists("war3map.w3a")) {
 		load_modification_file("war3map.w3a", abilities_slk, abilities_meta_slk, true);
 	}

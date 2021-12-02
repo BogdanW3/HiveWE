@@ -35,6 +35,8 @@ public:
 	QRibbonButton* change_tileset = new QRibbonButton;
 	QRibbonButton* change_tile_pathing = new QRibbonButton;
 	QRibbonButton* switch_warcraft = new QRibbonButton;
+	QRibbonButton* load_campaign_data = new QRibbonButton;
+	QRibbonButton* unload_campaign_data = new QRibbonButton;
 
 	QRibbonButton* object_editor = new QRibbonButton;
 

@@ -142,6 +142,15 @@ HiveWE::HiveWE(QWidget* parent) : QMainWindow(parent) {
 	connect(ui.ribbon->map_loading_screen, &QRibbonButton::clicked, [&]() { (new MapInfoEditor(this))->ui.tabs->setCurrentIndex(1); });
 	connect(ui.ribbon->map_options, &QRibbonButton::clicked, [&]() { (new MapInfoEditor(this))->ui.tabs->setCurrentIndex(2); });
 	//connect(ui, &QAction::triggered, [&]() { (new MapInfoEditor(this))->ui.tabs->setCurrentIndex(3); });
+	
+	connect(ui.ribbon->load_campaign_data, &QRibbonButton::clicked, [&]() {
+		hierarchy.campaign_directory = QFileDialog::getExistingDirectory(this, "Select Campaign Folder", ".", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks).toStdWString();
+	});
+
+	connect(ui.ribbon->unload_campaign_data, &QRibbonButton::clicked, [&]() {
+		hierarchy.campaign_directory = fs::path(".");
+	});
+	
 
 	connect(new QShortcut(QKeySequence(Qt::Key_T), this, nullptr, nullptr, Qt::WindowShortcut), &QShortcut::activated, [&]() {
 		open_palette<TerrainPalette>();
@@ -405,9 +414,7 @@ void HiveWE::switch_warcraft() {
 		}
 	} while (!hierarchy.open_casc(directory));
 
-	if (directory != hierarchy.warcraft_directory) {
-		settings.setValue("warcraftDirectory", QString::fromStdString(directory.string()));
-	}
+	settings.setValue("warcraftDirectory", QString::fromStdString(directory.string()));
 }
 
 void HiveWE::switch_camera() {

@@ -223,8 +223,14 @@ MainRibbon::MainRibbon(QWidget* parent) : QRibbon(parent) {
 	game_section->setText("Game");
 
 	switch_warcraft->setIcon(QIcon("Data/Icons/Ribbon/WarIII32x32.ico"));
-	switch_warcraft->setText("Change\n Game folder");
+	switch_warcraft->setText("Change\nGame folder");
 	game_section->addWidget(switch_warcraft);
+	load_campaign_data->setIcon(QIcon("Data/Icons/Ribbon/WarIII32x32.ico"));
+	load_campaign_data->setText("Load\nCampaign\nData");
+	game_section->addWidget(load_campaign_data);
+	unload_campaign_data->setIcon(QIcon("Data/Icons/Ribbon/WarIII32x32.ico"));
+	unload_campaign_data->setText("Unload\nCampaign\nData");
+	game_section->addWidget(unload_campaign_data);
 
 	tools_tab->addSection(game_section);	
 

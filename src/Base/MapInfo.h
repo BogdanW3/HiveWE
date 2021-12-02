@@ -159,7 +159,7 @@ public:
 	std::vector<TechAvailability> available_tech;
 	std::vector<RandomUnitTable> random_unit_tables;
 	std::vector<RandomItemTable> random_item_tables;
-	
+
 	//32 static constexpr int write_version = 31;
 	//32 static constexpr int write_editor_version = 6105;
 	//32 static constexpr int write_game_version_major = 1;
