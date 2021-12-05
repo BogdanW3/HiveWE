@@ -10,7 +10,7 @@ class TriggerStrings {
 
 	size_t next_id;
 public:
-	void load();
+	void load(std::string name);
 	void save() const;
 
 	std::string string(const std::string& key) const;

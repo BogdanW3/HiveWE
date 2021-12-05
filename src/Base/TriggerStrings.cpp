@@ -11,7 +11,7 @@
 #undef min
 #undef max
 
-void TriggerStrings::load() {
+void TriggerStrings::load(std::string name) {
 	BinaryReader reader = hierarchy.map_file_read("war3map.wts");
 
 	std::stringstream file;

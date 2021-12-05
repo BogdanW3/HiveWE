@@ -28,6 +28,7 @@ class Map : public QObject {
   public:
 	bool loaded = false;
 
+	TriggerStrings campaign_strings;
 	TriggerStrings trigger_strings;
 	Triggers triggers;
 	MapInfo info;
