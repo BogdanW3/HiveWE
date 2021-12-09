@@ -36,6 +36,7 @@ public:
 	QRibbonButton* change_tile_pathing = new QRibbonButton;
 	QRibbonButton* switch_warcraft = new QRibbonButton;
 
+	QRibbonButton* trigger_editor = new QRibbonButton;
 	QRibbonButton* object_editor = new QRibbonButton;
 
 	QRibbonButton* terrain_palette = new QRibbonButton;

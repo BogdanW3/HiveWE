@@ -19,6 +19,7 @@
 
 #include "MPQ.h"
 #include "Hierarchy.h"
+#include "TriggerEditor.h"
 #include "TileSetter.h"
 #include "MapInfoEditor.h"
 #include "TerrainPalette.h"
@@ -177,6 +178,12 @@ HiveWE::HiveWE(QWidget* parent) : QMainWindow(parent) {
 	});
 
 	setAutoFillBackground(true);
+
+	connect(ui.ribbon->trigger_editor, &QRibbonButton::clicked, [this]() {
+		bool created = false;
+		auto editor = window_handler.create_or_raise<TriggerEditor>(nullptr, created);
+		connect(this, &HiveWE::saving_initiated, editor, &TriggerEditor::save_changes, Qt::UniqueConnection);
+	});
 
 	connect(ui.ribbon->object_editor, &QRibbonButton::clicked, [this]() {
 		bool created = false;
