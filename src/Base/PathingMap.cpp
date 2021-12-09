@@ -26,6 +26,10 @@ bool PathingMap::load() {
 	width = reader.read<uint32_t>();
 	height = reader.read<uint32_t>();
 
+	if (width * height == 0) {
+		return true;
+	}
+
 	pathing_cells_static = reader.read_vector<uint8_t>(width * height);
 	pathing_cells_dynamic.resize(width * height);
 
