@@ -181,6 +181,10 @@ namespace mdx {
 		float fresnel_opacity;
 		float fresnel_team_color;
 
+		bool hd;
+
+		std::unordered_map<uint32_t, uint32_t> textures;
+
 		TrackHeader<uint32_t> KMTF;
 		TrackHeader<float> KMTA;
 		TrackHeader<float> KMTE;
@@ -363,7 +367,6 @@ namespace mdx {
 	export struct Material {
 		uint32_t priority_plane;
 		uint32_t flags;
-		std::string shader_name;
 		std::vector<Layer> layers;
 	};
 
@@ -886,9 +889,14 @@ namespace mdx {
 				Material material;
 				material.priority_plane = reader.read<uint32_t>();
 				material.flags = reader.read<uint32_t>();
-				if (version > 800) {
-					material.shader_name = reader.read_string(80);
+
+				bool v1000hd = false;
+				bool v1000sd = version == 800;
+				if (version > 800 && version < 1100) {
+					v1000hd = !reader.read_string(80).empty();
+					v1000sd = !v1000hd;
 				}
+
 				reader.advance(4);
 				const uint32_t layers_count = reader.read<uint32_t>();
 
@@ -908,6 +916,15 @@ namespace mdx {
 						layer.fresnel_color = reader.read<glm::vec3>();
 						layer.fresnel_opacity = reader.read<float>();
 						layer.fresnel_team_color = reader.read<float>();
+						layer.hd = false;
+						if (version > 1000) {
+							layer.hd = reader.read<uint32_t>();
+							uint32_t texs = reader.read<uint32_t>();
+							for (int i = 0; i < texs; i++) {
+								uint32_t id = reader.read<uint32_t>();
+								layer.textures[reader.read<uint32_t>()] = id;
+							}
+						}
 					}
 
 					while (reader.position < reader_pos + size) {
@@ -930,6 +947,17 @@ namespace mdx {
 					}
 
 					material.layers.push_back(std::move(layer));
+				}
+
+				if (v1000hd) {
+					material.layers[0].hd = true;
+					for (int i = 0; i < 6; i++) {
+						material.layers[0].textures[i] = material.layers[i].texture_id;
+					}
+					material.layers.resize(1);
+				} else if (v1000sd) {
+					for (auto& layer : material.layers)
+						layer.textures[0] = layer.texture_id;
 				}
 
 				materials.push_back(std::move(material));
@@ -1448,7 +1476,6 @@ namespace mdx {
 
 				writer.write<uint32_t>(material.priority_plane);
 				writer.write<uint32_t>(material.flags);
-				writer.write_c_string_padded(material.shader_name, 80);
 				writer.write_string("LAYS");
 				writer.write<uint32_t>(material.layers.size());
 
@@ -1469,6 +1496,12 @@ namespace mdx {
 					writer.write<float>(layer.fresnel_opacity);
 					writer.write<float>(layer.fresnel_team_color);
 
+					writer.write<uint32_t>(layer.hd);
+					writer.write<uint32_t>(layer.textures.size());
+					for (auto& pair : layer.textures) {
+						writer.write<uint32_t>(pair.second);
+						writer.write<uint32_t>(pair.first);
+					}
 					layer.KMTF.save(TrackTag::KMTF, writer);
 					layer.KMTA.save(TrackTag::KMTA, writer);
 					layer.KMTE.save(TrackTag::KMTE, writer);
@@ -2068,7 +2101,7 @@ namespace mdx {
 			writer.write_string("MDLX");
 			writer.write(ChunkTag::VERS);
 			writer.write<uint32_t>(4);
-			writer.write<uint32_t>(1000);
+			writer.write<uint32_t>(1100);
 
 			writer.write(ChunkTag::MODL);
 			writer.write<uint32_t>(372);
@@ -2277,7 +2310,7 @@ namespace mdx {
 			mdl.start_group(fmt::format("Materials {}", materials.size()), [&]() {
 				for (const auto& material : materials) {
 					mdl.start_group("Material", [&]() {
-						mdl.write_line(fmt::format("Shader \"{}\",", material.shader_name));
+						//mdl.write_line(fmt::format("Shader \"{}\",", material.shader_name));
 
 						for (const auto& layer : material.layers) {
 							mdl.start_group("Layer", [&]() {
