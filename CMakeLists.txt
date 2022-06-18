@@ -12,6 +12,11 @@ project (HiveWE CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets REQUIRED)
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	find_library(QSCINTILLA_LIBRARY qscintilla2_qt6)
+else()
+	find_library(QSCINTILLA_LIBRARY qscintilla2_qt6d)
+endif()
 find_package(Bullet CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -50,6 +55,7 @@ target_include_directories(HiveWE PRIVATE
 )
 
 target_link_libraries(HiveWE PUBLIC
+	Qt6::Core
 	Qt6::Gui
 	Qt6::Widgets
 	Qt6::OpenGL
@@ -72,6 +78,7 @@ target_link_libraries(HiveWE PUBLIC
 	fmt::fmt
 	fmt::fmt-header-only
 	TBB::tbb
+	${QSCINTILLA_LIBRARY}
 	imgui::imgui
 )
 

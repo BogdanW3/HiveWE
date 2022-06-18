@@ -73,6 +73,7 @@ target_sources(HiveWE PRIVATE
 	Menus/TilePather.cpp
 	Menus/TilePicker.cpp
 	Menus/TileSetter.cpp
+	Menus/TriggerEditor.cpp
 	Menus/Selections.cpp
 	Menus/ObjectEditor.cpp
 	Menus/ModelEditor.cpp
@@ -95,11 +96,16 @@ target_sources(HiveWE PRIVATE
 	"Custom Widgets/AspectRatioPixmapLabel.cpp"
 	"Custom Widgets/ColorButton.cpp"
 	"Custom Widgets/GLWidget.cpp"
+	"Custom Widgets/JassEditor.cpp"
 	"Custom Widgets/QRibbon.cpp"
 	"Custom Widgets/MainRibbon.cpp"
+	"Custom Widgets/SearchWindow.cpp"
+	"Custom Widgets/VariableEditor.cpp"
+	"Custom Widgets/TriggerExplorer.cpp"
 	"Custom Widgets/UnitSelector.cpp"
 	"Custom Widgets/GenericSelectorList.cpp"
 	"Custom Widgets/IconView.cpp"
+	"Custom Widgets/JassTokenizer.cpp"
 	"Custom Widgets/FlowLayout.cpp"
 	"Custom Widgets/ModelEditorGLWidget.cpp"
 

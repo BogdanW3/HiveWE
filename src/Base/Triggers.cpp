@@ -198,27 +198,27 @@ void Triggers::load_version_31(BinaryReader& reader, uint32_t version) {
 	if (sub_version != 7 && sub_version != 4) {
 		fmt::print("Unknown 1.31 WTG subformat! Trying anyway.\n");
 	}
-
-	reader.advance(4);							 // map_count
+	
+	map_count = reader.read<uint32_t>();
 	reader.advance(4 * reader.read<uint32_t>()); //map ids of deleted maps
 
-	reader.advance(4);							 // library_count
-	reader.advance(4 * reader.read<uint32_t>()); // library ids of deleted libraries
+	library_count = reader.read<uint32_t>();
+	reader.advance(4 * reader.read<uint32_t>()); //library ids of deleted libraries
 	
-	reader.advance(4);							 // category_count
-	reader.advance(4 * reader.read<uint32_t>()); // category ids of deleted categories
+	category_count = reader.read<uint32_t>();
+	reader.advance(4 * reader.read<uint32_t>()); //category ids of deleted categories
 
-	reader.advance(4);							 // trigger_count
-	reader.advance(4 * reader.read<uint32_t>()); // trigger ids of deleted triggers
+	trigger_count = reader.read<uint32_t>();
+	reader.advance(4 * reader.read<uint32_t>()); //trigger ids of deleted triggers
 
-	reader.advance(4);							 // comment_count
-	reader.advance(4 * reader.read<uint32_t>()); // comment ids of deleted comments
+	comment_count = reader.read<uint32_t>();
+	reader.advance(4 * reader.read<uint32_t>()); //comment ids of deleted comments
 
-	reader.advance(4);							 // script_count
-	reader.advance(4 * reader.read<uint32_t>()); // script ids of deleted scripts
+	script_count = reader.read<uint32_t>();
+	reader.advance(4 * reader.read<uint32_t>()); //script ids of deleted scripts
 
-	reader.advance(4);							 // variable_count
-	reader.advance(4 * reader.read<uint32_t>()); // variable ids of deleted variables
+	variable_count = reader.read<uint32_t>();
+	reader.advance(4 * reader.read<uint32_t>()); //variable ids of deleted variables
 
 	unknown1 = reader.read<uint32_t>();
 	unknown2 = reader.read<uint32_t>();
@@ -941,7 +941,45 @@ void Triggers::generate_item_tables(BinaryWriter& writer) {
 		for (const auto& j : i.item_sets) {
 			writer.write_string("\t\tcall RandomDistReset()\n");
 			for (const auto& [chance, id] : j.items) {
-				writer.write_string("\t\tcall RandomDistAddItem('" + id + "', " + std::to_string(chance) + ")\n");
+				if (id == "") {
+					writer.write_string("\t\tcall RandomDistAddItem(-1, " + std::to_string(chance) + ")\n");
+				} else if (id[0] == 'Y' && id[2] == 'I' &&
+						   ((id[1] >= 'i' && id[1] <= 'o') || id[1] == 'Y')) { // Random items
+					writer.write_string("\t\tcall RandomDistAddItem(ChooseRandomItemEx(ITEM_TYPE_");
+					switch (id[1]) {
+						case 'i': // permanent
+							writer.write_string("PERMANENT, ");
+							break;
+						case 'j': // charged
+							writer.write_string("CHARGED, ");
+							break;
+						case 'k': // powerup
+							writer.write_string("POWERUP, ");
+							break;
+						case 'l': // artifact
+							writer.write_string("ARTIFACT, ");
+							break;
+						case 'm': // purchasable
+							writer.write_string("PURCHASABLE, ");
+							break;
+						case 'n': // campaign
+							writer.write_string("CAMPAIGN, ");
+							break;
+						case 'o': // miscellaneous
+							writer.write_string("MISCELLANEOUS, ");
+							break;
+						case 'Y': // any
+							writer.write_string("ANY, ");
+							break;
+					}
+					if (id[4] == '/')
+						writer.write_string("-1), ");
+					else
+						writer.write_string(std::string(1, id[4]) + "), ");
+					writer.write_string(std::to_string(chance) + ")\n");
+				} else {
+					writer.write_string("\t\tcall RandomDistAddItem('" + id + "', " + std::to_string(chance) + ")\n");
+				}
 			}
 
 			writer.write_string(R"(
@@ -1006,7 +1044,45 @@ void Triggers::generate_unit_item_tables(BinaryWriter& writer) {
 			for (const auto& j : i.item_sets) {
 				writer.write_string("\t\tcall RandomDistReset()\n");
 				for (const auto& [id, chance] : j.items) {
-					writer.write_string("\t\tcall RandomDistAddItem('" + id + "', " + std::to_string(chance) + ")\n");
+					if (id == "") {
+						writer.write_string("\t\tcall RandomDistAddItem(-1, " + std::to_string(chance) + ")\n");
+					} else if (id[0] == 'Y' && id[2] == 'I' &&
+						((id[1] >= 'i' && id[1] <= 'o') || id[1] == 'Y')) { //Random items
+						writer.write_string("\t\tcall RandomDistAddItem(ChooseRandomItemEx(ITEM_TYPE_");
+						switch (id[1]) {
+							case 'i': //permanent
+								writer.write_string("PERMANENT, ");
+								break;
+							case 'j': //charged
+								writer.write_string("CHARGED, ");
+								break;
+							case 'k': //powerup
+								writer.write_string("POWERUP, ");
+								break;
+							case 'l': //artifact
+								writer.write_string("ARTIFACT, ");
+								break;
+							case 'm': // purchasable
+								writer.write_string("PURCHASABLE, ");
+								break;
+							case 'n': // campaign
+								writer.write_string("CAMPAIGN, ");
+								break;
+							case 'o': // miscellaneous
+								writer.write_string("MISCELLANEOUS, ");
+								break;
+							case 'Y': //any
+								writer.write_string("ANY, ");
+								break;
+						}
+						if (id[3] == '/')
+							writer.write_string("-1), ");
+						else
+							writer.write_string(std::string(1, id[3]) + "), ");
+						writer.write_string(std::to_string(chance) + ")\n");
+					} else {
+						writer.write_string("\t\tcall RandomDistAddItem('" + id + "', " + std::to_string(chance) + ")\n");
+					}
 				}
 
 				writer.write_string(R"(
