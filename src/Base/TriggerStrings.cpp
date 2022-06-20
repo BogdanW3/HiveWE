@@ -12,7 +12,7 @@
 #undef max
 
 void TriggerStrings::load(std::string name) {
-	BinaryReader reader = hierarchy.map_file_read("war3map.wts");
+	BinaryReader reader = hierarchy.map_file_read(name);
 
 	std::stringstream file;
 	file << reader.buffer.data();
