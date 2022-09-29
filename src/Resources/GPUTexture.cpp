@@ -11,7 +11,7 @@ GPUTexture::GPUTexture(const fs::path& path) {
 	fs::path new_path = path;
 
 	if (hierarchy.hd) {
-		new_path.replace_filename(path.stem().string() + "_diffuse.dds");
+		new_path.replace_filename(path.stem().string() + "_diffuse" + hierarchy.tex_ext);
 	}
 	if (!hierarchy.file_exists(new_path)) {
 		new_path = path;
@@ -20,7 +20,7 @@ GPUTexture::GPUTexture(const fs::path& path) {
 			new_path.replace_extension(".dds");
 			if (!hierarchy.file_exists(new_path)) {
 				std::cout << "Error loading texture " << new_path << "\n";
-				new_path = "Textures/btntempw.dds";
+				new_path = "Textures/btntempw" + hierarchy.tex_ext;
 			}
 		}
 	}

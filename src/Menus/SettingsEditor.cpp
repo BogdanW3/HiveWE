@@ -24,6 +24,7 @@ SettingsEditor::SettingsEditor(QWidget* parent)
 	ui.flavour->setCurrentText(settings.value("flavour").toString());
 	ui.hd->setChecked(settings.value("hd", "True").toString() != "False");
 	ui.teen->setChecked(settings.value("teen", "False").toString() != "False");
+	ui.w3ce->setChecked(settings.value("w3ce", "False").toString() != "False");
 
 	ui.userArgs->setText(settings.value("userArgs", "").toString());
 	ui.diff->setCurrentText(settings.value("diff", "Normal").toString());
@@ -71,6 +72,7 @@ void SettingsEditor::save() const {
 	settings.setValue("comments", ui.comments->isChecked() ? "True" : "False");
 	settings.setValue("hd", ui.hd->isChecked() ? "True" : "False");
 	settings.setValue("teen", ui.teen->isChecked() ? "True" : "False");
+	settings.setValue("w3ce", ui.w3ce->isChecked() ? "True" : "False");
 	settings.setValue("userArgs", ui.userArgs->text());
 	settings.setValue("diff", ui.diff->currentText());
 	settings.setValue("windowmode", ui.windowmode->currentText());

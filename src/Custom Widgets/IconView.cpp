@@ -179,7 +179,7 @@ IconModel::IconModel(QObject* parent) : QAbstractListModel(parent) {
 			}
 		}
 
-		std::string string_path = object["src"].toString().toStdString() + ".dds";
+		std::string string_path = object["src"].toString().toStdString() + hierarchy.tex_ext;
 		if (!hierarchy.file_exists(string_path)) {
 			continue;
 		}

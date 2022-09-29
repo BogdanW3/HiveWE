@@ -6,11 +6,17 @@ module;
 #include <optional>
 #include <iostream>
 #include <filesystem>
+#include <fstream>
 
 #define STORMLIB_NO_AUTO_LINK
 #include <StormLib.h>
 
+#include <QDir>
+#include <fmt/format.h>
+
 export module MPQ;
+
+import no_init_allocator;
 
 namespace fs = std::filesystem;
 
@@ -36,22 +42,22 @@ namespace mpq {
 			return *this;
 		}
 
-		std::vector<uint8_t> read() const {
+		std::vector<uint8_t, default_init_allocator<uint8_t>> read() const {
 			const uint32_t size = SFileGetFileSize(handle, nullptr);
 			if (size == 0) {
 				return {};
 			}
 
-			std::vector<uint8_t> buffer(size);
+			std::vector<uint8_t, default_init_allocator<uint8_t>> buffer(size);
 
 #ifdef _MSC_VER
 			unsigned long bytes_read;
 #else
-			unsigned int bytes_read;
+			unsigned bytes_read;
 #endif
 			const bool success = SFileReadFile(handle, buffer.data(), size, &bytes_read, nullptr);
 			if (!success) {
-				throw std::runtime_error("Failed to read file: " + std::to_string(GetLastError()));
+				fmt::print("Failed to read file: {}\n", std::to_string(GetLastError()));
 			}
 			return buffer;
 		}
@@ -89,6 +95,7 @@ namespace mpq {
 	export class MPQ {
 	  public:
 		HANDLE handle = nullptr;
+		fs::path local_path = fs::path();
 
 		MPQ() = default;
 
@@ -96,19 +103,27 @@ namespace mpq {
 			open(path, flags);
 		}
 
+		explicit MPQ(File archive, unsigned long flags = 0) {
+			open(archive, flags);
+		}
+
 		~MPQ() {
 			close();
 		}
-		MPQ(MPQ&& move)
-		noexcept {
+
+		MPQ(MPQ&& move) noexcept {
 			handle = move.handle;
 			move.handle = nullptr;
+			local_path = move.local_path;
+			move.local_path = fs::path();
 		}
 		MPQ(const MPQ&) = default;
 		MPQ& operator=(const MPQ&) = delete;
 		MPQ& operator=(MPQ&& move) noexcept {
 			handle = move.handle;
 			move.handle = nullptr;
+			local_path = move.local_path;
+			move.local_path = fs::path();
 			return *this;
 		}
 
@@ -116,9 +131,24 @@ namespace mpq {
 			return SFileOpenArchive(path.c_str(), 0, flags, &handle);
 		}
 
+		bool open(const File& archive, const unsigned long flags = 0) {
+			auto buffer = archive.read();
+			local_path = QDir::tempPath().toStdString() + "/" + std::to_string(time(nullptr)) + ".mpq";
+			std::ofstream output(local_path, std::ofstream::binary);
+			if (!output) {
+				std::cout << "Opening/Creation failed for: " << local_path << std::endl;
+				return false;
+			}
+			output.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+			output.close();
+			return SFileOpenArchive(local_path.c_str(), 0, flags, &handle);
+		}
+
 		void close() {
 			SFileCloseArchive(handle);
 			handle = nullptr;
+			fs::remove(local_path);
+			local_path = fs::path();
 		}
 
 		bool compact() {

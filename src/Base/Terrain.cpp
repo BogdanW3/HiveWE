@@ -119,6 +119,7 @@ void Terrain::create() {
 	// Done parsing
 
 	hierarchy.tileset = tileset;
+	hierarchy.reload_tileset();
 
 	terrain_slk.load("TerrainArt/Terrain.slk");
 	cliff_slk.load("TerrainArt/CliffTypes.slk");
@@ -447,12 +448,12 @@ void Terrain::change_tileset(const std::vector<std::string>& new_tileset_ids, st
 	ground_texture_to_id.clear();
 
 	for (const auto& tile_id : tileset_ids) {
-		ground_textures.push_back(resource_manager.load<GroundTexture>(terrain_slk.data("dir", tile_id) + "/" + terrain_slk.data("file", tile_id) + (hierarchy.hd ? "_diffuse.dds" : ".dds")));
+		ground_textures.push_back(resource_manager.load<GroundTexture>(terrain_slk.data("dir", tile_id) + "/" + terrain_slk.data("file", tile_id) + (hierarchy.hd ? "_diffuse" : "") + hierarchy.tex_ext));
 		ground_texture_to_id.emplace(tile_id, static_cast<int>(ground_textures.size() - 1));
 	}
 	blight_texture = static_cast<int>(ground_textures.size());
 	ground_texture_to_id.emplace("blight", blight_texture);
-	ground_textures.push_back(resource_manager.load<GroundTexture>(world_edit_data.data("TileSets", std::string(1, tileset), 1) + (hierarchy.hd ? "_diffuse.dds" : ".dds")));
+	ground_textures.push_back(resource_manager.load<GroundTexture>(world_edit_data.data("TileSets", std::string(1, tileset), 1) + (hierarchy.hd ? "_diffuse" : "") + hierarchy.tex_ext));
 
 	cliff_to_ground_texture.clear();
 	for (const auto& cliff_id : cliffset_ids) {

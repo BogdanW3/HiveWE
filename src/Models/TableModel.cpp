@@ -205,7 +205,7 @@ QVariant TableModel::data(const QModelIndex& index, int role) const {
 			}
 
 			if (!hierarchy.file_exists(icon)) {
-				icon.replace_extension(".dds");
+				icon.replace_extension(hierarchy.tex_ext);
 				if (!hierarchy.file_exists(icon)) {
 					return {};
 				}

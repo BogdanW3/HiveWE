@@ -11,13 +11,13 @@ GroundTexture::GroundTexture(const fs::path& path) {
 	fs::path new_path = path;
 
 	if (hierarchy.hd) {
-		new_path.replace_filename(path.stem().string() + "_diffuse.dds");
+		new_path.replace_filename(path.stem().string() + "_diffuse" + hierarchy.tex_ext);
 	}
 	if (!hierarchy.file_exists(new_path)) {
 		new_path = path;
 		new_path.replace_extension(".blp");
 		if (!hierarchy.file_exists(new_path)) {
-			new_path.replace_extension(".dds");
+			new_path.replace_extension(hierarchy.tex_ext);
 		}
 	}
 	
