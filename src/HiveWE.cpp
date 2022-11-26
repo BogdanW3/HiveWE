@@ -46,7 +46,7 @@ HiveWE::HiveWE(QWidget* parent) : QMainWindow(parent) {
 	hierarchy.ptr = settings.value("flavour", "Retail").toString() != "Retail";
 	hierarchy.hd = settings.value("hd", "True").toString() != "False";
 	hierarchy.teen = settings.value("teen", "False").toString() != "False";
-	hierarchy.w3ce = settings.value("war3ce", 0).toString() != "False";
+	hierarchy.w3ce = settings.value("w3ce", "False").toString() != "False";
 	QSettings war3reg("HKEY_CURRENT_USER\\Software\\Blizzard Entertainment\\Warcraft III", QSettings::NativeFormat);
 	hierarchy.local_files = war3reg.value("Allow Local Files", 0).toInt() != 0;
 	while (!hierarchy.load(directory)) {
