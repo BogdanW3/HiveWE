@@ -188,62 +188,75 @@ void load_modification_table(BinaryReader& reader, uint32_t version, slk::SLK& s
 		const std::string original_id = reader.read_string(4);
 		const std::string modified_id = reader.read_string(4);
 
-		if (version >= 3) {
-			reader.advance(4 * reader.read<uint32_t>());
-		}
 		if (modification && !slk.base_data.contains(modified_id)) {
 			slk.copy_row(original_id, modified_id, false);
 		}
 
-		const uint32_t modifications = reader.read<uint32_t>();
+		uint32_t sets = 1;
 
-		for (size_t j = 0; j < modifications; j++) {
-			const std::string modification_id = reader.read_string(4);
-			const uint32_t type = reader.read<uint32_t>();
+		if (version >= 3) {
+			sets = reader.read<uint32_t>();
+		}
 
-			std::string column_header = to_lowercase_copy(meta_slk.data("field", modification_id));
-			if (optional_ints) {
-				uint32_t level_variation = reader.read<uint32_t>();
-				uint32_t data_pointer = reader.read<uint32_t>();
-				if (data_pointer != 0) {
-					column_header += char('a' + data_pointer - 1);
-				}
-				if (level_variation != 0) {
-					column_header += std::to_string(level_variation);
-				}
+		// Save the other sets?
+		for (uint32_t set = 0; set < sets; set++) {
 
-				// Can remove after checking whether this holds for many maps
-				if (data_pointer != 0 && level_variation == 0) {
-					assert(!(data_pointer != 0 && level_variation == 0));
-				}
+			// Make enum after more research
+			uint32_t set_flag = 0;
+			if (version >= 3) {
+				 set_flag = reader.read<uint32_t>();
 			}
 
-			std::string data;
-			switch (type) {
-				case 0:
-					data = std::to_string(reader.read<int>());
-					break;
-				case 1:
-				case 2:
-					data = std::to_string(reader.read<float>());
-					break;
-				case 3:
-					data = reader.read_c_string();
-					break;
-				default: 
-					std::cout << "Unknown data type " << type << " while loading modification table.";
-			}
-			reader.advance(4);
+			const uint32_t modifications = reader.read<uint32_t>();
 
-			if (column_header == "") {
-				std::cout << "Unknown mod id: " << modification_id << "\n";
-				continue;
-			}
+			for (size_t j = 0; j < modifications; j++) {
+				const std::string modification_id = reader.read_string(4);
+				const uint32_t type = reader.read<uint32_t>();
 
-			if (modification) {
-				slk.set_shadow_data(column_header, modified_id, data);
-			} else {
-				slk.set_shadow_data(column_header, original_id, data);
+				std::string column_header = to_lowercase_copy(meta_slk.data("field", modification_id));
+				if (optional_ints) {
+					uint32_t level_variation = reader.read<uint32_t>();
+					uint32_t data_pointer = reader.read<uint32_t>();
+					if (data_pointer != 0) {
+						column_header += char('a' + data_pointer - 1);
+					}
+					if (level_variation != 0) {
+						column_header += std::to_string(level_variation);
+					}
+
+					// Can remove after checking whether this holds for many maps
+					if (data_pointer != 0 && level_variation == 0) {
+						assert(!(data_pointer != 0 && level_variation == 0));
+					}
+				}
+
+				std::string data;
+				switch (type) {
+					case 0:
+						data = std::to_string(reader.read<int>());
+						break;
+					case 1:
+					case 2:
+						data = std::to_string(reader.read<float>());
+						break;
+					case 3:
+						data = reader.read_c_string();
+						break;
+					default: 
+						std::cout << "Unknown data type " << type << " while loading modification table.";
+				}
+				reader.advance(4);
+
+				if (column_header == "") {
+					std::cout << "Unknown mod id: " << modification_id << "\n";
+					continue;
+				}
+
+				if (modification) {
+					slk.set_shadow_data(column_header, modified_id, data);
+				} else {
+					slk.set_shadow_data(column_header, original_id, data);
+				}
 			}
 		}
 	}
