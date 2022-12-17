@@ -159,8 +159,8 @@ SkinnedMesh::SkinnedMesh(const fs::path& path, std::optional<std::pair<int, std:
 			bool found = false;
 			for (const auto& material : model->materials) {
 				for (const auto& layer : material.layers) {
-					for (size_t j = 0; j < layer.textures.size(); j++) {
-						if (layer.textures[j].id != i) {
+					for (size_t j = 0; j < layer.layerTextures.size(); j++) {
+						if (layer.layerTextures[j].id != i) {
 							continue;
 						}
 
@@ -407,8 +407,8 @@ void SkinnedMesh::render_opaque(bool render_hd) {
 				gl->glDepthMask(true);
 			}
 
-			for (size_t texture_slot = 0; texture_slot < j.textures.size(); texture_slot++) {
-				gl->glBindTextureUnit(texture_slot, textures[j.textures[texture_slot].id]->id);
+			for (size_t texture_slot = 0; texture_slot < j.layerTextures.size(); texture_slot++) {
+				gl->glBindTextureUnit(texture_slot, textures[j.layerTextures[texture_slot].id]->id);
 			}
 
 			gl->glDrawElementsInstancedBaseVertex(GL_TRIANGLES, i.indices, GL_UNSIGNED_SHORT, reinterpret_cast<void*>(i.base_index * sizeof(uint16_t)), render_jobs.size(), i.base_vertex);
@@ -499,8 +499,8 @@ void SkinnedMesh::render_transparent(int instance_id, bool render_hd) {
 			//	gl->glDepthMask(true);
 			//}
 
-			for (size_t texture_slot = 0; texture_slot < j.textures.size(); texture_slot++) {
-				gl->glBindTextureUnit(texture_slot, textures[j.textures[texture_slot].id]->id);
+			for (size_t texture_slot = 0; texture_slot < j.layerTextures.size(); texture_slot++) {
+				gl->glBindTextureUnit(texture_slot, textures[j.layerTextures[texture_slot].id]->id);
 			}
 
 			gl->glDrawElementsBaseVertex(GL_TRIANGLES, i.indices, GL_UNSIGNED_SHORT, reinterpret_cast<void*>(i.base_index * sizeof(uint16_t)), i.base_vertex);
