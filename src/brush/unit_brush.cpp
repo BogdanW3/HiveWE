@@ -147,6 +147,16 @@ void UnitBrush::mouse_move_event(QMouseEvent* event, double frame_delta) {
 					unit->update();
 				}
 			} else if (event->modifiers() & Qt::ControlModifier) {
+				if (!rotating) {
+					// begin rotation group
+					rotating = true;
+					map->world_undo.new_undo_group();
+					unit_state_undo = std::make_unique<UnitStateAction>();
+					for (const auto& i : selections) {
+						unit_state_undo->old_units.push_back(*i);
+					}
+				}
+
 				for (auto&& i : selections) {
 					float target_rotation =
 						std::atan2(input_handler.mouse_world.y - i->position.y, input_handler.mouse_world.x - i->position.x);
@@ -187,6 +197,14 @@ void UnitBrush::mouse_release_event(QMouseEvent* event) {
 			unit_state_undo->new_units.push_back(*i);
 		}
 		map->world_undo.add_undo_action(std::move(unit_state_undo));
+	}
+	else if (rotating) {
+		// finish rotation undo group
+		for (const auto& i : selections) {
+			unit_state_undo->new_units.push_back(*i);
+		}
+		map->world_undo.add_undo_action(std::move(unit_state_undo));
+		rotating = false;
 	}
 
 	Brush::mouse_release_event(event);

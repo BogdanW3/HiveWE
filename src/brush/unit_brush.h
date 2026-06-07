@@ -44,6 +44,8 @@ class UnitBrush : public Brush {
 	glm::vec3 drag_start;
 	std::vector<glm::vec2> drag_offsets;
 
+	bool rotating = false;
+
 	UnitBrush();
 
 	void set_shape(const Shape new_shape) override;
