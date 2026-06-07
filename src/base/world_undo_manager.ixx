@@ -31,6 +31,10 @@ export class WorldUndoManager {
 
   public:
 	std::function<void(const WorldCommand&)> on_action_added;
+	// Called when a local undo/redo is performed. CollaborationSession hooks these
+	// to broadcast the undo/redo event to other peers.
+	std::function<void()> on_undo;
+	std::function<void()> on_redo;
 
 	void undo(WorldEditContext& ctx) {
 		if (undo_actions.empty()) {
@@ -44,6 +48,9 @@ export class WorldUndoManager {
 
 		redo_actions.push_back(std::move(actions));
 		undo_actions.pop_back();
+		if (on_undo) {
+			on_undo();
+		}
 	}
 
 	void redo(WorldEditContext& ctx) {
@@ -58,6 +65,9 @@ export class WorldUndoManager {
 
 		undo_actions.push_back(std::move(actions));
 		redo_actions.pop_back();
+		if (on_redo) {
+			on_redo();
+		}
 	}
 
 	void new_undo_group() {

@@ -491,6 +491,14 @@ bool CollaborationSession::host(const quint16 port) {
 		map->world_undo.on_action_added = [this](const WorldCommand& command) {
 			broadcast_world_command(command);
 		};
+		map->world_undo.on_undo = [this]() {
+			const QString msg = QStringLiteral("{\"type\":\"undo\"}");
+			broadcast_json(msg);
+		};
+		map->world_undo.on_redo = [this]() {
+			const QString msg = QStringLiteral("{\"type\":\"redo\"}");
+			broadcast_json(msg);
+		};
 	}
 	emit status_changed(QString::fromStdString(std::format("Hosting on port {}", port)));
 	return true;
@@ -524,6 +532,14 @@ bool CollaborationSession::join(const QString& address, const quint16 port) {
 		map->world_undo.on_action_added = [this](const WorldCommand& command) {
 			broadcast_world_command(command);
 		};
+		map->world_undo.on_undo = [this]() {
+			const QString msg = QStringLiteral("{\"type\":\"undo\"}");
+			broadcast_json(msg);
+		};
+		map->world_undo.on_redo = [this]() {
+			const QString msg = QStringLiteral("{\"type\":\"redo\"}");
+			broadcast_json(msg);
+		};
 	}
 	send_json(host_socket, QStringLiteral(R"({"type":"join_request"})"));
 	emit status_changed(QString::fromStdString(std::format("Connected to {}:{}", address.toStdString(), port)));
@@ -541,6 +557,8 @@ void CollaborationSession::stop() {
 
 	if (map) {
 		map->world_undo.on_action_added = {};
+		map->world_undo.on_undo = {};
+		map->world_undo.on_redo = {};
 	}
 
 	for (auto* peer : peers) {
@@ -703,6 +721,39 @@ void CollaborationSession::handle_message(QTcpSocket* sender, const QString& mes
 			socket_state[host_socket].ready = true;
 		}
 		emit snapshot_received();
+		return;
+	}
+
+	if (type == "undo") {
+		if (!map) return;
+		auto ctx = make_context(map);
+		// Suppress broadcasting while applying a remote undo to avoid loops
+		auto saved_on_undo = map->world_undo.on_undo;
+		auto saved_on_redo = map->world_undo.on_redo;
+		map->world_undo.on_undo = {};
+		map->world_undo.on_redo = {};
+		map->world_undo.undo(ctx);
+		map->world_undo.on_undo = saved_on_undo;
+		map->world_undo.on_redo = saved_on_redo;
+		if (is_host) {
+			broadcast_json(message, sender);
+		}
+		return;
+	}
+
+	if (type == "redo") {
+		if (!map) return;
+		auto ctx = make_context(map);
+		auto saved_on_undo = map->world_undo.on_undo;
+		auto saved_on_redo = map->world_undo.on_redo;
+		map->world_undo.on_undo = {};
+		map->world_undo.on_redo = {};
+		map->world_undo.redo(ctx);
+		map->world_undo.on_undo = saved_on_undo;
+		map->world_undo.on_redo = saved_on_redo;
+		if (is_host) {
+			broadcast_json(message, sender);
+		}
 		return;
 	}
 
