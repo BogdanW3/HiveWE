@@ -359,7 +359,14 @@ void deserialize_map_snapshot(const nlohmann::json& message, Map& map) {
 		map.doodads.special_doodads.push_back(special_doodad_from_json(doodad));
 	}
 
-	map.loaded = false;
+	// Initialize runtime resources for units and doodads so a joined client
+	// has the same visible state as the host. This mirrors what happens on
+	// a normal map load (see HiveWE load path).
+	map.units.create();
+	map.pathing_map.upload_static_pathing();
+	map.doodads.create(map.terrain, map.pathing_map);
+
+	map.loaded = true;
 }
 
 }
