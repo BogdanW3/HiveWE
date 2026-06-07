@@ -30,6 +30,7 @@
       ]
     },
     "libjpeg-turbo",
+    "mdns",
     {
       "name": "mimalloc",
       "features": [
@@ -45,6 +46,7 @@
       "features": [
         "gui",
         "jpeg",
+        "network",
         "opengl",
         "png",
         "widgets"

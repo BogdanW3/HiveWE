@@ -35,6 +35,10 @@ MainRibbon::MainRibbon(QWidget* parent) : QRibbon(parent) {
 	asset_manager->setText("Asset\nManager");
 	editor_section->addWidget(asset_manager);
 
+	session->setIcon(QIcon("data/icons/ribbon/options.png"));
+	session->setText("Session");
+	editor_section->addWidget(session);
+
 	QRibbonSection* palette_section = new QRibbonSection;
 	palette_section->setText("Palette");
 

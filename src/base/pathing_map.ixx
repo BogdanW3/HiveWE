@@ -254,6 +254,10 @@ export class PathingMap {
 		recreate_textures();
 	}
 
+	void refresh_textures() {
+		recreate_textures();
+	}
+
 	void resize(int delta_left, int delta_right, int delta_top, int delta_bottom) {
 		const int new_width = width + delta_left + delta_right;
 		const int new_height = height + delta_top + delta_bottom;

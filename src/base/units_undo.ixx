@@ -15,6 +15,9 @@ public:
 
 	void redo(WorldEditContext& ctx) override {
 		ctx.units.units.insert(ctx.units.units.end(), units.begin(), units.end());
+		for (const auto& unit : units) {
+			Unit::auto_increment = std::max(Unit::auto_increment, unit.creation_number);
+		}
 	}
 };
 

@@ -14,6 +14,7 @@ namespace fs = std::filesystem;
 #include <QMenu>
 #include <QPainter>
 #include <QKeyEvent>
+#include <memory>
 
 #include "ui_HiveWE.h"
 #include "global_search.h"
@@ -25,6 +26,7 @@ import <glm/gtc/matrix_transform.hpp>;
 import <glm/gtc/quaternion.hpp>;
 import "palette.h";
 import "minimap.h";
+import CollaborationSession;
 
 class HiveWE : public QMainWindow {
 	Q_OBJECT
@@ -45,6 +47,7 @@ private:
 	Ui::HiveWEClass ui;
 	QRibbonTab* current_custom_tab = nullptr;
 	Minimap* minimap = new Minimap(this);
+	std::unique_ptr<CollaborationSession> collaboration_session;
 
 	QElapsedTimer double_shift_timer;
 
@@ -69,6 +72,9 @@ private:
 	void import_heightmap();
 	void save_window_state();
 	void restore_window_state();
+	void open_collaboration_session();
+	void stop_collaboration_session();
+	void apply_collaboration_snapshot();
 
 	/// Adds the tab to the ribbon and sets the current index to this tab
 	void set_current_custom_tab(QRibbonTab* tab, QString name);

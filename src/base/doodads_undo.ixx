@@ -20,6 +20,9 @@ export class DoodadAddAction final: public WorldCommand {
 	void redo(WorldEditContext& ctx) override {
 		ctx.doodads.doodads.insert(ctx.doodads.doodads.end(), doodads.begin(), doodads.end());
 		ctx.doodads.update_doodad_pathing(doodads, ctx.pathing_map);
+		for (const auto& doodad : doodads) {
+			Doodad::auto_increment = std::max(Doodad::auto_increment, doodad.creation_number);
+		}
 	}
 };
 

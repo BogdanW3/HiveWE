@@ -30,6 +30,8 @@ export class WorldUndoManager {
 	std::vector<std::vector<std::unique_ptr<WorldCommand>>> redo_actions;
 
   public:
+	std::function<void(const WorldCommand&)> on_action_added;
+
 	void undo(WorldEditContext& ctx) {
 		if (undo_actions.empty()) {
 			return;
@@ -67,8 +69,20 @@ export class WorldUndoManager {
 			return;
 		}
 
+		if (on_action_added) {
+			on_action_added(*action);
+		}
+
 		undo_actions.back().push_back(std::move(action));
 		redo_actions.clear();
+	}
+
+	void apply_remote(std::unique_ptr<WorldCommand> action, WorldEditContext& ctx) {
+		if (!action) {
+			return;
+		}
+
+		action->redo(ctx);
 	}
 
 	/// Removes all undo/redo operations

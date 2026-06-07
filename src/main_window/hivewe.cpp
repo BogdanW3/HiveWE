@@ -27,12 +27,23 @@ import "doodad_palette.h";
 import "unit_palette.h";
 import "object_editor/icon_view.h";
 import "trigger_editor.h";
+import "menus/gameplay_constants_editor.h";
+import "asset_manager/asset_manager.h";
+import CollaborationSession;
+
 #include "QMessageBox"
 #include "QProcess"
 #include "QKeySequence"
 #include "QString"
-import "menus/gameplay_constants_editor.h";
-import "asset_manager/asset_manager.h";
+
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSpinBox>
+#include <QVBoxLayout>
 
 namespace fs = std::filesystem;
 
@@ -204,6 +215,7 @@ HiveWE::HiveWE(QWidget* parent)
 		bool created = false;
 		window_handler.create_or_raise<AssetManager>(nullptr, created);
 	});
+	connect(ui.ribbon->session, &QRibbonButton::clicked, this, &HiveWE::open_collaboration_session);
 
 	restore_window_state();
 
@@ -230,6 +242,7 @@ void HiveWE::load_map(const fs::path& directory) {
 	window_handler.close_all();
 	ui.widget->makeCurrent();
 
+	stop_collaboration_session();
 	delete map;
 	resource_manager.clear();
 	skinned_mesh_globals.reset();
@@ -247,6 +260,113 @@ void HiveWE::load_map(const fs::path& directory) {
 
 	map->render_manager.resize_framebuffers(ui.widget->width(), ui.widget->height());
 	setWindowTitle("HiveWE 0.11 - " + QString::fromStdString(map->filesystem_path.string()));
+}
+
+void HiveWE::stop_collaboration_session() {
+	if (map) {
+		map->world_undo.on_action_added = {};
+	}
+	collaboration_session.reset();
+}
+
+void HiveWE::apply_collaboration_snapshot() {
+	if (!map) {
+		return;
+	}
+
+	ui.widget->makeCurrent();
+	resource_manager.clear();
+	skinned_mesh_globals.reset();
+
+	map->pathing_map.refresh_textures();
+	map->terrain.create(map->physics);
+	map->pathing_map.upload_static_pathing();
+	map->doodads.create(map->terrain, map->pathing_map);
+	map->units.create();
+	map->loaded = true;
+	map->render_manager.resize_framebuffers(ui.widget->width(), ui.widget->height());
+
+	camera.position = glm::vec3(map->terrain.width / 2.f, map->terrain.height / 2.f, 0.f);
+	camera.position.z = map->terrain.interpolated_height(camera.position.x, camera.position.y, true);
+	setWindowTitle("HiveWE 0.11 - Collaboration Session");
+}
+
+void HiveWE::open_collaboration_session() {
+	auto* dialog = new QDialog(this);
+	dialog->setWindowTitle("LAN Session");
+	dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+	auto* layout = new QVBoxLayout(dialog);
+	auto* hint = new QLabel("Host a live session, or discover one on the LAN and join it without opening the same map first.", dialog);
+	hint->setWordWrap(true);
+	layout->addWidget(hint);
+
+	auto* form_box = new QGroupBox("Connection", dialog);
+	auto* form = new QFormLayout(form_box);
+	auto* address = new QLineEdit("127.0.0.1", form_box);
+	auto* port = new QSpinBox(form_box);
+	port->setRange(1, 65535);
+	port->setValue(25252);
+	form->addRow("Host address", address);
+	form->addRow("Port", port);
+	layout->addWidget(form_box);
+
+	auto* status = new QLabel("Disconnected", dialog);
+	layout->addWidget(status);
+
+	auto* buttons = new QDialogButtonBox(dialog);
+	auto* host_button = buttons->addButton("Host", QDialogButtonBox::AcceptRole);
+	auto* join_button = buttons->addButton("Join", QDialogButtonBox::ActionRole);
+	auto* discover_button = buttons->addButton("Discover LAN", QDialogButtonBox::ActionRole);
+	auto* close_button = buttons->addButton(QDialogButtonBox::Close);
+	layout->addWidget(buttons);
+
+	connect(close_button, &QPushButton::clicked, dialog, &QDialog::close);
+	connect(discover_button, &QPushButton::clicked, this, [address, port, status]() {
+		const auto endpoints = CollaborationSession::discover_lan_sessions();
+		if (endpoints.isEmpty()) {
+			status->setText("No collaboration hosts found");
+			return;
+		}
+
+		address->setText(endpoints.front().address);
+		port->setValue(endpoints.front().port);
+		status->setText(QString("Found %1").arg(endpoints.front().name));
+	});
+	connect(host_button, &QPushButton::clicked, this, [this, port, status]() {
+		stop_collaboration_session();
+		collaboration_session = std::make_unique<CollaborationSession>(map, this);
+		connect(collaboration_session.get(), &CollaborationSession::snapshot_received, this, &HiveWE::apply_collaboration_snapshot);
+		if (collaboration_session->host(static_cast<quint16>(port->value()))) {
+			map->world_undo.on_action_added = [session = collaboration_session.get()](const WorldCommand& command) {
+				if (session) {
+					session->broadcast_world_command(command);
+				}
+			};
+			status->setText("Hosting");
+		} else {
+			collaboration_session.reset();
+			status->setText("Failed to host");
+		}
+	});
+	connect(join_button, &QPushButton::clicked, this, [this, address, port, status]() {
+		stop_collaboration_session();
+		collaboration_session = std::make_unique<CollaborationSession>(map, this);
+		connect(collaboration_session.get(), &CollaborationSession::snapshot_received, this, &HiveWE::apply_collaboration_snapshot);
+		if (collaboration_session->join(address->text(), static_cast<quint16>(port->value()))) {
+			map->world_undo.on_action_added = [session = collaboration_session.get()](const WorldCommand& command) {
+				if (session) {
+					session->broadcast_world_command(command);
+				}
+			};
+			status->setText("Connected");
+		} else {
+			collaboration_session.reset();
+			status->setText("Failed to connect");
+		}
+	});
+
+	dialog->show();
 }
 
 void HiveWE::load_folder() {

@@ -11,7 +11,7 @@ project (HiveWE CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Qt6 COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Network REQUIRED)
 find_package(Bullet CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -28,6 +28,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(outcome CONFIG REQUIRED)
 find_package(unordered_dense CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_path(MDNS_INCLUDE_DIR mdns.h REQUIRED)
 find_package(mimalloc CONFIG REQUIRED)
 find_package(unofficial-qscintilla CONFIG REQUIRED)
 find_package(tracy CONFIG REQUIRED)
@@ -59,6 +60,7 @@ target_include_directories(HiveWE_lib PUBLIC
 	"src/resources/skinned_mesh"
 	"src/utilities"
 
+	${MDNS_INCLUDE_DIR}
 	${BULLET_INCLUDE_DIR}
 )
 
@@ -68,6 +70,7 @@ target_link_libraries(HiveWE_lib PUBLIC
 	Qt6::Widgets
 	Qt6::OpenGL
 	Qt6::OpenGLWidgets
+		Qt6::Network
 	glm::glm
 	glad::glad
 	soil2::soil2
@@ -85,6 +88,10 @@ target_link_libraries(HiveWE_lib PUBLIC
 	unofficial::qscintilla::qscintilla
 	${BULLET_LIBRARIES}
 )
+
+if(WIN32)
+	target_link_libraries(HiveWE_lib PUBLIC iphlpapi ws2_32)
+endif()
 
 target_compile_options(HiveWE_lib PUBLIC
 	$<$<CXX_COMPILER_ID:MSVC>:/Zc:__cplusplus /MP /sdl /diagnostics:caret /permissive->
