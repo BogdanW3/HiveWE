@@ -30,10 +30,20 @@ export enum class PlayerRace {
 	night_elf
 };
 
+export enum class HudRace {
+	human = 1,
+	orc = 2,
+	night_elf = 4,
+	undead = 8,
+	none = 64,
+	forsaken = 128,
+};
+
 struct PlayerData {
 	int internal_number;
 	PlayerType type;
 	PlayerRace race;
+	HudRace hud_skin_race = HudRace::none;
 	int fixed_start_position;
 	std::string name;
 	glm::vec2 starting_position;
@@ -130,8 +140,12 @@ export class MapInfo {
 	bool force_default_zoom;
 	bool force_max_zoom;
 	bool force_min_zoom;
+	bool override_hd_water_color;
+	bool use_alpha_tile_default_minimap_color;
+	bool dynamic_minimap;
 
 	int loading_screen_number;
+	HudRace loading_screen_crest = HudRace::none;
 	std::string loading_screen_model;
 	std::string loading_screen_text;
 	std::string loading_screen_title;
@@ -149,6 +163,12 @@ export class MapInfo {
 	float fog_end_z_height;
 	float fog_density;
 	glm::u8vec4 fog_color;
+	float fog_height_start = 0.f;
+	float fog_height_end = 0.f;
+	float fog_linear_start = 10e3f;
+	float fog_linear_end = 10e3f;
+	float fog_max_opacity = 1.f;
+	bool draw_fog_over_sky = false;
 
 	int weather_id;
 	std::string custom_sound_environment;
@@ -163,6 +183,18 @@ export class MapInfo {
 	uint32_t max_cam_distance;
 	uint32_t min_cam_distance;
 
+	uint32_t hd_water_min_opacity;
+	uint32_t hd_water_max_opacity;
+	uint32_t hd_water_reflectivity;
+	uint32_t hd_water_emissivity;
+	uint32_t hd_water_edge_softness;
+	uint32_t hd_water_waves_vertex_displacement;
+	uint32_t hd_water_waves_normal_map_strength;
+	glm::u8vec4 hd_water_color;
+	uint32_t hd_water_env_map_reflectivity;
+
+	glm::u8vec4 alpha_tile_minimap_color;
+
 	std::vector<PlayerData> players;
 	std::vector<ForceData> forces;
 	std::vector<UpgradeAvailability> available_upgrades;
@@ -170,12 +202,12 @@ export class MapInfo {
 	std::vector<RandomUnitTable> random_unit_tables;
 	std::vector<RandomItemTable> random_item_tables;
 
-	static constexpr int write_version = 33;
-	static constexpr int write_editor_version = 6116;
-	static constexpr int write_game_version_major = 2;
+	static constexpr int write_version = 39;
+	static constexpr int write_editor_version = 7000;
+	static constexpr int write_game_version_major = 3;
 	static constexpr int write_game_version_minor = 0;
-	static constexpr int write_game_version_patch = 3;
-	static constexpr int write_game_version_build = 22978;
+	static constexpr int write_game_version_patch = 0;
+	static constexpr int write_game_version_build = 24268;
 
 	// hiveWE specific data
 	char custom_ambience_tileset;
@@ -379,13 +411,15 @@ export class MapInfo {
 			| custom_abilities * 0x0100 | custom_upgrades * 0x0200 | unknown2 * 0x0400 | cliff_shore_waves * 0x0800
 			| rolling_shore_waves * 0x1000 | unknown3 * 0x2000 | unknown4 * 0x4000 | item_classification * 0x8000 | water_tinting * 0x10000
 			| accurate_probability_for_calculations * 0x20000 | custom_ability_skins * 0x40000 | disable_deny_icon * 0x80000
-			| force_default_zoom * 0x100000 | force_max_zoom * 0x200000 | force_min_zoom * 0x400000;
+			| force_default_zoom * 0x100000 | force_max_zoom * 0x200000 | force_min_zoom * 0x400000 | override_hd_water_color * 0x800000
+			| use_alpha_tile_default_minimap_color * 0x1000000 | dynamic_minimap * 0x2000000;
 
 		writer.write(flags);
 
 		writer.write(tileset);
 
 		writer.write(loading_screen_number);
+		writer.write(static_cast<int>(loading_screen_crest));
 		writer.write_c_string(loading_screen_model);
 		writer.write_c_string(loading_screen_text);
 		writer.write_c_string(loading_screen_title);
@@ -403,6 +437,12 @@ export class MapInfo {
 		writer.write(fog_end_z_height);
 		writer.write(fog_density);
 		writer.write(fog_color);
+		writer.write(fog_height_start);
+		writer.write(fog_height_end);
+		writer.write(fog_linear_start);
+		writer.write(fog_linear_end);
+		writer.write(fog_max_opacity);
+		writer.write((uint32_t)draw_fog_over_sky);
 
 		writer.write(weather_id);
 		writer.write_c_string(custom_sound_environment);
@@ -418,11 +458,25 @@ export class MapInfo {
 		writer.write(max_cam_distance);
 		writer.write(min_cam_distance);
 
+		writer.write(hd_water_min_opacity);
+		writer.write(hd_water_max_opacity);
+		writer.write(hd_water_reflectivity);
+		writer.write(hd_water_emissivity);
+		writer.write(hd_water_edge_softness);
+		writer.write(hd_water_waves_vertex_displacement);
+		writer.write(hd_water_waves_normal_map_strength);
+		writer.write(hd_water_color);
+		writer.write(hd_water_env_map_reflectivity);
+
+		writer.write(alpha_tile_minimap_color);
+
+
 		writer.write<uint32_t>(players.size());
 		for (const auto& i : players) {
 			writer.write(i.internal_number);
 			writer.write(static_cast<int>(i.type) + 1);
 			writer.write(static_cast<int>(i.race));
+			writer.write(static_cast<int>(i.hud_skin_race));
 			writer.write(i.fixed_start_position);
 			writer.write_c_string(i.name);
 			writer.write(i.starting_position);
@@ -567,12 +621,19 @@ export class MapInfo {
 		force_default_zoom = flags & 0x100000;
 		force_max_zoom = flags & 0x200000;
 		force_min_zoom = flags & 0x400000;
+		override_hd_water_color = flags & 0x800000;
+		use_alpha_tile_default_minimap_color = flags & 0x1000000;
+		dynamic_minimap = flags & 0x2000000;
 
 		// Tileset
 		reader.advance(1);
 
 		if (version >= 25) { // TFT
 			loading_screen_number = reader.read<uint32_t>();
+			if (version >= 39) {
+				loading_screen_crest = static_cast<HudRace>(reader.read<uint32_t>());
+			}
+
 			loading_screen_model = reader.read_c_string();
 			loading_screen_text = reader.read_c_string();
 			loading_screen_title = reader.read_c_string();
@@ -590,6 +651,16 @@ export class MapInfo {
 			fog_end_z_height = reader.read<float>();
 			fog_density = reader.read<float>();
 			fog_color = reader.read<glm::u8vec4>();
+
+			if (version >= 39) {
+				fog_height_start = reader.read<float>();
+				fog_height_end = reader.read<float>();
+				fog_linear_start = reader.read<float>();
+				fog_linear_end = reader.read<float>();
+
+				fog_max_opacity = reader.read<float>();
+				draw_fog_over_sky = reader.read<uint32_t>() != 0;
+			}
 
 			weather_id = reader.read<uint32_t>();
 			custom_sound_environment = reader.read_c_string();
@@ -609,6 +680,19 @@ export class MapInfo {
 				max_cam_distance = reader.read<uint32_t>();
 				if (version >= 33) {
 					min_cam_distance = reader.read<uint32_t>();
+					if (version >= 39) {
+						hd_water_min_opacity = reader.read<uint32_t>();
+						hd_water_max_opacity = reader.read<uint32_t>();
+						hd_water_reflectivity = reader.read<uint32_t>();
+						hd_water_emissivity = reader.read<uint32_t>();
+						hd_water_edge_softness = reader.read<uint32_t>();
+						hd_water_waves_vertex_displacement = reader.read<uint32_t>();
+						hd_water_waves_normal_map_strength = reader.read<uint32_t>();
+						hd_water_color = reader.read<glm::u8vec4>();
+						hd_water_env_map_reflectivity = reader.read<uint32_t>();
+
+						alpha_tile_minimap_color = reader.read<glm::u8vec4>();
+					}
 				}
 			}
 		} else if (version == 18) { // RoC
@@ -636,6 +720,9 @@ export class MapInfo {
 			i.internal_number = reader.read<uint32_t>();
 			i.type = static_cast<PlayerType>(reader.read<uint32_t>() - 1);
 			i.race = static_cast<PlayerRace>(reader.read<uint32_t>());
+			if (editor_version >= 6140) {
+				i.hud_skin_race = static_cast<HudRace>(reader.read<uint32_t>());
+			}
 			i.fixed_start_position = reader.read<uint32_t>();
 			i.name = reader.read_c_string();
 			i.starting_position = reader.read<glm::vec2>();
