@@ -567,7 +567,7 @@ export class MapInfo {
 
 		const int version = reader.read<uint32_t>();
 
-		if (version != 33 && version != 32 && version != 31 && version != 28 && version != 25 && version != 18 && version != 15) {
+		if (version != 39 && version != 33 && version != 32 && version != 31 && version != 28 && version != 25 && version != 18 && version != 15) {
 			std::cout << "Unknown war3map.w3i version\n";
 		}
 
