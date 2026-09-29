@@ -74,14 +74,57 @@
            </item>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="hd">
+         <item row="2" column="0">
+          <widget class="QLabel" name="graphicsModeLabel">
            <property name="text">
-            <string>Enable HD Mode (requires restart)</string>
+            <string>Graphics (requires restart)</string>
            </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QWidget" name="graphics_mode">
+           <layout class="QHBoxLayout" name="graphicsModeLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="sd">
+              <property name="text">
+               <string>SD</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="hd">
+              <property name="text">
+               <string>HD</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="de">
+              <property name="text">
+               <string>DE</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="graphicsModeSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </widget>
          </item>
          <item row="3" column="1">

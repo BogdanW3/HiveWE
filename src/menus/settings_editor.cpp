@@ -4,6 +4,7 @@
 #include <QFile>
 
 import std;
+import Hierarchy;
 
 void setTestArgs(Ui::SettingsEditor &ui) {
 	ui.testArgs->setText(ui.userArgs->text() + " -mapdiff " + QString::fromStdString(std::string("") + char(ui.diff->currentIndex() + '0')) +
@@ -23,7 +24,17 @@ SettingsEditor::SettingsEditor(QWidget* parent)
 	ui.theme->setCurrentText(settings.value("theme", "Dark").toString());
 	ui.comments->setChecked(settings.value("comments", "True").toString() != "False");
 	ui.flavour->setCurrentText(settings.value("flavour").toString());
-	ui.hd->setChecked(settings.value("hd", "True").toString() != "False");
+	switch (Hierarchy::graphics_mode_from_settings(settings)) {
+		case Hierarchy::GraphicsMode::sd:
+			ui.sd->setChecked(true);
+			break;
+		case Hierarchy::GraphicsMode::hd:
+			ui.hd->setChecked(true);
+			break;
+		case Hierarchy::GraphicsMode::de:
+			ui.de->setChecked(true);
+			break;
+	}
 	ui.teen->setChecked(settings.value("teen", "False").toString() != "False");
 
 	ui.userArgs->setText(settings.value("userArgs", "").toString());
@@ -70,7 +81,7 @@ void SettingsEditor::save() const {
 	settings.setValue("theme", ui.theme->currentText());
 	settings.setValue("flavour", ui.flavour->currentText());
 	settings.setValue("comments", ui.comments->isChecked() ? "True" : "False");
-	settings.setValue("hd", ui.hd->isChecked() ? "True" : "False");
+	settings.setValue("graphics_mode", ui.de->isChecked() ? "DE" : (ui.hd->isChecked() ? "HD" : "SD"));
 	settings.setValue("teen", ui.teen->isChecked() ? "True" : "False");
 	settings.setValue("userArgs", ui.userArgs->text());
 	settings.setValue("diff", ui.diff->currentText());

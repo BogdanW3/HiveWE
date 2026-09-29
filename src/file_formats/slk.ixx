@@ -306,10 +306,16 @@ namespace slk {
 
 			auto data = data_single_asset_type(column_header, row_header);
 			if (!data) {
-				if (hierarchy.hd) {
-					data = data_single_asset_type(std::string(column_header) + ":hd", row_header);
-				} else {
-					data = data_single_asset_type(std::string(column_header) + ":sd", row_header);
+				switch (hierarchy.graphics_mode) {
+					case Hierarchy::GraphicsMode::sd:
+						data = data_single_asset_type(std::string(column_header) + ":sd", row_header);
+						break;
+					case Hierarchy::GraphicsMode::hd:
+						data = data_single_asset_type(std::string(column_header) + ":hd", row_header);
+						break;
+					case Hierarchy::GraphicsMode::de:
+						data = data_single_asset_type(std::string(column_header) + ":de", row_header);
+						break;
 				}
 			}
 
@@ -335,7 +341,7 @@ namespace slk {
 		}
 
 		// Gets the data by first checking the shadow table and then checking the base table
-		// Does :sd and :hd tag resolution too
+		// Does :sd, :hd and :de tag resolution too
 		// column_header should be lowercase
 		// If you have both an integer row index and the string row name then use the overload that takes string_view as it will do a index->name conversion internally
 		template<typename T = std::string>

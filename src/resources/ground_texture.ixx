@@ -25,7 +25,7 @@ export class GroundTexture : public Resource {
 	explicit GroundTexture(const fs::path& path) {
 		fs::path new_path = path;
 
-		if (hierarchy.hd) {
+		if (hierarchy.graphics_mode != Hierarchy::GraphicsMode::sd) {
 			new_path.replace_filename(path.stem().string() + "_diffuse");
 		}
 
