@@ -37,10 +37,12 @@ export struct Region {
 	std::string weather_id;
 	std::string ambient_id;
 	glm::u8vec3 color = {255, 0, 0};
+	bool block_camera = false;
+	bool alpha_tile_minimap_color = false;
 };
 
 export class Regions {
-	static constexpr int write_version = 5;
+	static constexpr int write_version = 7;
 
 	struct RegionRenderData {
 		glm::vec4 rect; // left, bottom, right, top
@@ -93,7 +95,7 @@ export class Regions {
 		BinaryReader reader = hierarchy.map_file_read("war3map.w3r").value();
 
 		const int version = reader.read<uint32_t>();
-		if (version != 5) {
+		if (version != 5 && version != 7) {
 			std::cout << "Unknown Regions file version. Attempting to load, but may crash.";
 		}
 
@@ -111,6 +113,11 @@ export class Regions {
 			const auto color = reader.read<glm::u8vec3>();
 			i.color = {color.b, color.g, color.r}; // BGR to RGB
 			reader.advance(1);
+
+			if (version >= 7) {
+				i.block_camera = reader.read<uint32_t>();
+				i.alpha_tile_minimap_color = reader.read<uint32_t>();
+			}
 		}
 
 		return true;
@@ -133,6 +140,9 @@ export class Regions {
 			writer.write_c_string(i.ambient_id);
 			writer.write(glm::u8vec3(i.color.b, i.color.g, i.color.r));
 			writer.write<uint8_t>(0xFF);
+
+			writer.write<uint32_t>(i.block_camera);
+			writer.write<uint32_t>(i.alpha_tile_minimap_color);
 		}
 
 		hierarchy.map_file_write("war3map.w3r", writer.buffer);
