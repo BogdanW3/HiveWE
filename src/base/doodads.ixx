@@ -23,6 +23,7 @@ import MapInfo;
 import UnorderedMap;
 import SLK;
 import PathingMap;
+import Light;
 import <glm/glm.hpp>;
 import <glm/gtc/matrix_transform.hpp>;
 
@@ -46,7 +47,7 @@ export class Doodads {
 	hive::unordered_map<std::string, std::shared_ptr<SkinnedMesh>> id_to_mesh;
 	std::mutex mesh_mutex;
 
-	static constexpr int write_version = 8;
+	static constexpr int write_version = 13;
 	static constexpr int write_subversion = 11;
 	static constexpr int write_special_version = 0;
 
@@ -63,7 +64,7 @@ export class Doodads {
 			return false;
 		}
 		const uint32_t version = reader.read<uint32_t>();
-		if (version != 7 && version != 8) {
+		if (version != 7 && version != 8 && version != 13) {
 			std::println("Unknown war3map.doo version: {} Attempting to load but may crash\nPlease send this map to eejin\n", version);
 		}
 
@@ -86,6 +87,10 @@ export class Doodads {
 				i.skin_id = i.id;
 			}
 
+			if (version >= 13) {
+				i.group_id = reader.read<int32_t>();
+			}
+
 			i.state = static_cast<Doodad::State>(reader.read<uint8_t>());
 			i.life = reader.read<uint8_t>();
 
@@ -101,7 +106,22 @@ export class Doodads {
 				}
 			}
 
+			if (version >= 13) {
+				i.custom_color = reader.read<int32_t>();
+			}
+
 			i.creation_number = reader.read<uint32_t>();
+
+			if (version >= 13) {
+				i.roll = reader.read<float>();
+				i.pitch = reader.read<float>();
+
+				i.lights.resize(reader.read<uint32_t>());
+				for (auto& j : i.lights) {
+					j = Light::read(reader);
+				}
+			}
+
 			Doodad::auto_increment = std::max(Doodad::auto_increment, i.creation_number);
 		}
 
@@ -134,6 +154,7 @@ export class Doodads {
 			writer.write<glm::vec3>(i.scale);
 
 			writer.write_string(i.skin_id);
+			writer.write<int32_t>(i.group_id);
 
 			writer.write<uint8_t>(static_cast<int>(i.state));
 			writer.write<uint8_t>(i.life);
@@ -148,7 +169,16 @@ export class Doodads {
 				}
 			}
 
+			writer.write<int32_t>(i.custom_color);
 			writer.write<uint32_t>(i.creation_number);
+
+			writer.write<float>(i.roll);
+			writer.write<float>(i.pitch);
+
+			writer.write<uint32_t>(i.lights.size());
+			for (const auto& j : i.lights) {
+				j.write(writer);
+			}
 		}
 
 		writer.write<uint32_t>(write_special_version);

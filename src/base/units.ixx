@@ -18,6 +18,7 @@ import Hierarchy;
 import Globals;
 import Terrain;
 import Rects;
+import Light;
 import <glm/glm.hpp>;
 import <glm/gtc/matrix_transform.hpp>;
 
@@ -33,6 +34,7 @@ export struct Unit {
 	glm::vec3 scale;
 
 	std::string skin_id;
+	int group_id = -1;
 
 	uint8_t flags = 2;
 	int player = 0;
@@ -65,6 +67,10 @@ export struct Unit {
 	int custom_color = -1;
 	int waygate = -1;
 	int creation_number;
+
+	float roll = 0.f;
+	float pitch = 0.f;
+	std::vector<Light> lights;
 
 	Skeleton skeleton;
 	std::shared_ptr<SkinnedMesh> mesh;
@@ -101,7 +107,7 @@ export class Units {
 	std::unordered_map<std::string, std::shared_ptr<SkinnedMesh>> id_to_mesh;
 	std::mutex mesh_mutex;
 
-	static constexpr int write_version = 8;
+	static constexpr int write_version = 13;
 	static constexpr int write_subversion = 11;
 
 	//static constexpr int mod_table_write_version = 2;
@@ -118,7 +124,7 @@ export class Units {
 			std::cout << "Invalid war3mapUnits.w3e file: Magic number is not W3do\n";
 		}
 		const uint32_t version = reader.read<uint32_t>();
-		if (version != 7 && version != 8) {
+		if (version != 7 && version != 8 && version != 13) {
 			std::cout << "Unknown war3mapUnits.doo version: " << version
 					  << " Attempting to load but may crash\nPlease send this map to eejin\n";
 		}
@@ -143,6 +149,10 @@ export class Units {
 				i.skin_id = reader.read_string(4);
 			} else {
 				i.skin_id = i.id;
+			}
+
+			if (version >= 13) {
+				i.group_id = reader.read<int32_t>();
 			}
 
 			i.flags = reader.read<uint8_t>();
@@ -212,6 +222,16 @@ export class Units {
 			i.waygate = reader.read<uint32_t>();
 			i.creation_number = reader.read<uint32_t>();
 
+			if (version >= 13) {
+				i.roll = reader.read<float>();
+				i.pitch = reader.read<float>();
+
+				i.lights.resize(reader.read<uint32_t>());
+				for (auto& j : i.lights) {
+					j = Light::read(reader);
+				}
+			}
+
 			// Either a unit or an item
 			if (units_slk.row_headers.contains(i.id) || i.id == "sloc" || i.id == "uDNR" || i.id == "bDNR") {
 				units.push_back(i);
@@ -241,6 +261,7 @@ export class Units {
 				writer.write<glm::vec3>(i.scale * 128.f);
 
 				writer.write_string(i.skin_id);
+				writer.write<int32_t>(i.group_id);
 
 				writer.write<uint8_t>(i.flags);
 
@@ -289,6 +310,14 @@ export class Units {
 				writer.write<uint32_t>(i.custom_color);
 				writer.write<uint32_t>(i.waygate);
 				writer.write<uint32_t>(i.creation_number);
+
+				writer.write<float>(i.roll);
+				writer.write<float>(i.pitch);
+
+				writer.write<uint32_t>(i.lights.size());
+				for (const auto& j : i.lights) {
+					j.write(writer);
+				}
 			}
 		};
 

@@ -14,6 +14,7 @@ import SLK;
 import Globals;
 import ResourceManager;
 import Utilities;
+import Light;
 import <glm/glm.hpp>;
 import <glm/gtc/quaternion.hpp>;
 
@@ -22,6 +23,7 @@ export struct Doodad {
 
 	std::string id;
 	std::string skin_id;
+	int group_id = -1;
 	int variation = 0;
 	glm::vec3 position = glm::vec3(0.f);
 	glm::vec3 scale = glm::vec3(1.f);
@@ -38,7 +40,12 @@ export struct Doodad {
 	int item_table_pointer = -1;
 	std::vector<ItemSet> item_sets;
 
+	int custom_color = -1;
 	int creation_number;
+
+	float roll = 0.f;
+	float pitch = 0.f;
+	std::vector<Light> lights;
 
 	// Auxiliary data
 	Skeleton skeleton;

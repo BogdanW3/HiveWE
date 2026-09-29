@@ -10,6 +10,7 @@ target_sources(HiveWE_lib PUBLIC FILE_SET yeet TYPE CXX_MODULES FILES
 	"base/binary_reader.ixx"
 	"base/doodad.ixx"
 	"base/doodads.ixx"
+	"base/light.ixx"
 	"base/binary_writer.ixx"
 	"base/hierarchy.ixx"
 	"base/render_manager.ixx"
